@@ -14,6 +14,7 @@ use jsonwebtoken::errors::{Error as JwtError, ErrorKind as JwtErrorKind};
 use lettre::{
     address::AddressError, error::Error as LettreError, transport::smtp::Error as LettreSmtpError,
 };
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "backend")]
 use uuid::Error as UuidError;
 #[cfg(feature = "backend")]
@@ -21,7 +22,7 @@ use validator::ValidationErrors;
 
 use thiserror::Error as ThisError;
 
-#[derive(ThisError, Clone, Debug, PartialEq)]
+#[derive(ThisError, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum AppError {
     /// 401
     #[error("Unauthorized: {}", _0)]

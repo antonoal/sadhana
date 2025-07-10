@@ -6,13 +6,15 @@ build-info:
 	./scripts/build_info.sh
 
 frontend-build: build-info
-	cd frontend && trunk build
+	cd ui && trunk build
 
 run_server:
 	DATABASE_URL=$(db_url) \
 		RUST_BACKTRACE=full \
 		cargo run --bin server
 
+run_ui: frontend-build
+	cd ui && trunk serve 
 
 run: frontend-build
 	$(MAKE) run_server
@@ -45,4 +47,4 @@ lint:
 	cargo clippy --all-targets --all-features -- -D warnings
 
 # non-file target for make
-.PHONY: run_server run frontend-build build-info create_migration migrate redo_migrate reset_db gen_schema test lint
+.PHONY: run_server run run_ui frontend-build build-info create_migration migrate redo_migrate reset_db gen_schema test lint

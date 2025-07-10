@@ -14,4 +14,5 @@ RUN rustup target add wasm32-unknown-unknown
 
 RUN cargo install cargo-binstall \
     && cargo binstall -y trunk wasm-bindgen-cli \
-    && cargo install diesel_cli --no-default-features --features postgres
+    && cargo install diesel_cli --no-default-features --features postgres \
+    && cargo install leptosfmt

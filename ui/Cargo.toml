@@ -1,0 +1,45 @@
+[package]
+name = "ui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+common = { path = "../common", features = ["frontend"] }
+chrono = { version = "0.4", features = ["serde", "unstable-locales"] }
+const_format = "0.2"
+console_error_panic_hook = "0.1"
+gloo = { version = "0.11", features = ["file", "futures"] }
+lazy_static = "1.4"
+leptos = { version = "0.8", features = ["csr"] }
+leptos_router = "0.8"
+log = { version = "0.4", features = [
+  "max_level_debug",
+  "release_max_level_warn",
+] }
+parking_lot = "0.12"
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
+wasm-logger = "0.2"
+leptos-use = "0.16" # TODO: use `use_local_storage()` this instead of gloo storage
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "Document",
+  "Element",
+  "Node",
+  "Window",
+  "HtmlCollection",
+  "HtmlInputElement",
+  "CssStyleDeclaration",
+  "DomRect",
+  "Document",
+  "DomTokenList",
+  "Navigator",
+  "Blob",
+  "Url",
+  "VisibilityState",
+  "BroadcastChannel",
+  "MessageEvent",
+]

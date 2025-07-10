@@ -10,3 +10,7 @@ backend = "http://0.0.0.0:8080/api/"
 
 [serve]
 port = 3000
+
+# Uncomment to freeze the version of tailwindcss
+# [tools]
+# tailwindcss = "4.1.10"

@@ -6,6 +6,7 @@ use crate::model::auth::{UserInfo, UserInfoWrapper};
 use crate::routes::{auth::login::Login, home::Home};
 use crate::services::requests::request_api_get;
 
+mod components;
 mod css;
 mod model;
 mod routes;
@@ -19,26 +20,29 @@ fn App() -> impl IntoView {
     provide_context(user_ctx);
 
     view! {
-      <Router>
-        <Routes fallback=|| "🤷‍♂️ Not found.">
-          <Route path=path!("/login") view=move || view! { <Login set_user_ctx />}/>
-          <ParentRoute path=path!("") view=move || view! {
-            <Suspense fallback=|| view! { <p>"Loading current user..."</p> }>
-              {move || Suspend::new(async move {
-                let user = saved_user.await;
-                view! {
-                  <Show when=move || { !user.as_ref().is_ok_and(|user_info| user_info.is_authenticated()) }>
-                    <Redirect path="/login"/>
-                  </Show>
-                }
-              })}
-            </Suspense>
-            <Outlet/>
-            }>
-            <Route path=path!("/") view=Home/>
-          </ParentRoute>
-        </Routes>
-      </Router>
+      <main>
+        <components::header::Header/>
+        <Router>
+          <Routes fallback=|| "🤷‍♂️ Not found.">
+            <Route path=path!("/login") view=move || view! { <Login set_user_ctx />}/>
+            <ParentRoute path=path!("") view=move || view! {
+              <Suspense fallback=|| view! { <p>"Loading current user..."</p> }>
+                {move || Suspend::new(async move {
+                  let user = saved_user.await;
+                  view! {
+                    <Show when=move || { !user.as_ref().is_ok_and(|user_info| user_info.is_authenticated()) }>
+                      <Redirect path="/login"/>
+                    </Show>
+                  }
+                })}
+              </Suspense>
+              <Outlet/>
+              }>
+              <Route path=path!("/") view=Home/>
+            </ParentRoute>
+          </Routes>
+        </Router>
+      </main>
     }
 }
 

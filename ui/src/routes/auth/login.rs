@@ -24,14 +24,10 @@ pub fn Login(set_user_ctx: WriteSignal<UserInfo>) -> impl IntoView {
             log::debug!("Setting user context");
             set_token(Some(user_info.user.token.clone()));
             set_user_ctx.set(user_info.user.clone());
+            log::debug!("Redirecting to the home page");
             navigate("/", Default::default());
         }
     });
-
-    let onsubmit = move |ev: SubmitEvent| {
-        ev.prevent_default(); // prevent page reload
-        user_login.dispatch(login_info.get());
-    };
 
     // let error_formatter = move |err| match err {
     //     crate::error::AppError::NotFound => {
@@ -43,7 +39,10 @@ pub fn Login(set_user_ctx: WriteSignal<UserInfo>) -> impl IntoView {
     view! {
         // <BlankPage header_label=Locale::current().login() loading=loading()>
         // <ListErrors error=error() error_formatter=error_formatter />
-            <form on:submit=onsubmit>
+            <form on:submit=move |ev: SubmitEvent| {
+                ev.prevent_default(); // prevent page reload
+                user_login.dispatch(login_info.get());
+            }>
                 <div class=BODY_DIV_CSS>
                     <div class="relative">
                         <input

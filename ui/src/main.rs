@@ -2,7 +2,9 @@ use common::error::AppError;
 use leptos::prelude::*;
 use leptos_router::{components::*, path};
 
+use crate::components::background::Background;
 use crate::model::auth::{UserInfo, UserInfoWrapper};
+use crate::routes::charts::Charts;
 use crate::routes::{auth::login::Login, home::Home};
 use crate::services::requests::request_api_get;
 
@@ -15,17 +17,19 @@ mod services;
 #[component]
 fn App() -> impl IntoView {
     let (user_ctx, set_user_ctx) = signal(UserInfo::default());
+    let (show_footer, set_show_footer) = signal(true);
+    let (header_label, set_header_label) = signal(None);
     let saved_user = LocalResource::new(async move || current().await.map(|wrapper| wrapper.user));
 
     provide_context(user_ctx);
 
     view! {
       <main>
-        <components::header::Header/>
+        <Background />
         <Router>
           <Routes fallback=|| "🤷‍♂️ Not found.">
-            <Route path=path!("") view=move || view! {
-              <Suspense fallback=|| view! { <p>"Loading current user..."</p> }>
+            <ParentRoute path=path!("") view=move || view! {
+              <Suspense fallback=|| view! { <p>"Loading current user..."</p> } >
                 {move || Suspend::new(async move {
                   if !user_ctx.get().is_authenticated() {
                     log::debug!("Fetching user from server");
@@ -35,30 +39,19 @@ fn App() -> impl IntoView {
                   }
                   view! {
                     <Show
-                      when=move || { user_ctx.get().is_authenticated() }
+                      when=move || user_ctx.get().is_authenticated()
                       fallback=move || view! { <Redirect path="/login" /> }
                     >
-                      <Home />
+                      <Outlet/>
                     </Show>
                   }
                 })}
               </Suspense>
-            } />
+            } >
+              <Route path=path!("") view=move || view! { <Home show_footer=show_footer header_label=header_label/> } />
+              <Route path=path!("/charts") view=Charts />
+            </ParentRoute>
             <Route path=path!("/login") view=move || view! { <Login set_user_ctx />}/>
-            // <ParentRoute path=path!("") view=move || view! {
-            //   <Suspense fallback=|| view! { <p>"Loading current user..."</p> }>
-            //     {move || Suspend::new(async move {
-            //       let user = saved_user.await;
-            //       view! {
-            //         <Show when=move || { !user.as_ref().is_ok_and(|user_info| user_info.is_authenticated()) } fallback=|| view! { <Login/> }>
-            //         </Show>
-            //       }
-            //     })}
-            //   </Suspense>
-            //   <Outlet/>
-            //   }>
-            //   <Route path=path!("/") view=Home/>
-            // </ParentRoute>
           </Routes>
         </Router>
       </main>

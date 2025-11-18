@@ -3833,6 +3833,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
+name = "tw_merge"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97db850b711089abdcd9192238b946491d1562fe3eb83e25b238fd73eecebf13"
+dependencies = [
+ "nom",
+ "tw_merge_variants",
+]
+
+[[package]]
+name = "tw_merge_variants"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "03de956478d5562138828bb736cc066949bda33dbb99c55ef77b2bb5438868e4"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "typed-builder"
 version = "0.21.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3876,6 +3898,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "tw_merge",
  "wasm-logger",
  "web-sys",
 ]

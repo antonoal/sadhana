@@ -4,9 +4,10 @@ use tw_merge::*;
 use crate::components::footer::Footer;
 
 #[component]
-pub fn Home(
+pub fn MobileLayout(
     show_footer: ReadSignal<bool>,
     header_label: ReadSignal<Option<String>>,
+    children: Children,
 ) -> impl IntoView {
     let online = true;
 
@@ -74,7 +75,7 @@ pub fn Home(
                         //         selected_date_incomplete={cal.selected_date_incomplete}
                         //         />
                         // }
-                        // <Outlet />
+                        {children()}
                     </div>
                 </div>
             </div>

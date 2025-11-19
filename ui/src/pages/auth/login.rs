@@ -19,7 +19,7 @@ pub fn Login(set_user_ctx: WriteSignal<UserInfo>) -> impl IntoView {
 
     let navigate = use_navigate();
 
-    Effect::new(move |_| {
+    Effect::new(move || {
         if let Some(Ok(user_info)) = user_login.value().get() {
             log::debug!("Setting user context");
             set_token(Some(user_info.user.token.clone()));

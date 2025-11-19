@@ -1,15 +1,12 @@
 use leptos::prelude::*;
 use tw_merge::*;
 
-use crate::components::footer::Footer;
+use crate::{components::footer::Footer, layouts::LayoutContext};
 
 #[component]
-pub fn MobileLayout(
-    show_footer: ReadSignal<bool>,
-    header_label: ReadSignal<Option<String>>,
-    children: Children,
-) -> impl IntoView {
+pub fn MobileLayout(children: Children) -> impl IntoView {
     let online = true;
+    let layout = use_context::<LayoutContext>().expect("Layout context it not provided");
 
     view! {
         <Show when=move || !online >
@@ -25,7 +22,7 @@ pub fn MobileLayout(
             class=move || {
                 tw_merge!(
                     "fixed pt-safe-top top-0 {} left-0 right-0 overflow-y-auto",
-                    if show_footer.get() {"bottom-16"} else {"bottom-0"},
+                    if !layout.hide_footer.get() {"bottom-16"} else {"bottom-0"},
                     if !online {"top-4"} else {""}
                     )
                 }
@@ -52,11 +49,11 @@ pub fn MobileLayout(
                 </div>
                 <div class="relative sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-7xl mx-auto">
                     <div class="relative px-4 py-4 rounded-3xl sm:px-20 md:px-20 lg:px-20 xl:px-30 2xl:px-30">
-                        <Show when=move || header_label.get().is_some() >
+                        <Show when=move || layout.header_title.get().is_some() >
 
                                         <div class="pb-5 text-center">
                                             <h5 class="text-xl font-medium text-zinc-500 dark:text-zinc-100">
-                                                {header_label.get()}
+                                                {layout.header_title.get()}
                                             </h5>
                                 //             {for props.header_sub_label.iter().map(|sl| {
                                     //                 html!{<span class="text-sm text-zinc-300 dark:text-zinc-200">{sl}</span>}
@@ -80,7 +77,7 @@ pub fn MobileLayout(
                 </div>
             </div>
         </div>
-        <Show when=move || show_footer.get() >
+        <Show when=move || !layout.hide_footer.get() >
             <Footer />
         </Show>
     }

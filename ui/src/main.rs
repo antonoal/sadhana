@@ -2,6 +2,8 @@ use leptos::prelude::*;
 use leptos_router::{components::*, path};
 
 use crate::components::i18n_provider::I18nProvider;
+use crate::components::loading_context::LoadingContext;
+use crate::components::loading_overlay::LoadingOverlay;
 use crate::components::{background::Background, protected_routes::ProtectedRoutes};
 use crate::layouts::AppLayout;
 use crate::model::auth::UserInfo;
@@ -21,9 +23,12 @@ fn App() -> impl IntoView {
 
     provide_context(user_ctx);
 
+    LoadingContext::provide();
+
     view! {
       <main>
         <Background />
+        <LoadingOverlay />
         <I18nProvider>
           <Router>
             <Routes fallback=|| "🤷‍♂️ Not found.">

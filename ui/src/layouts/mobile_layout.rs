@@ -29,11 +29,6 @@ pub fn MobileLayout(children: Children) -> impl IntoView {
         >
             // 100vh-4rem means screen minus bottom-16; env(...) - the height of iPhone notch
             <div class="bg-transparent min-h-[calc(100vh-4rem-env(safe-area-inset-top))] justify-center items-center py-[calc(0.5rem-env(safe-area-inset-top))] sm:py-[calc(3rem-env(safe-area-inset-top))]">
-                // if props.loading && *loading {
-                //     <div class="bg-gray-500 bg-opacity-50 fixed left-0 top-0 z-10 h-full w-full overflow-hidden flex">
-                //         <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-10 w-10 m-auto"/>
-                //     </div>
-                // }
                 <div class="w-full text-center relative">
                     <div class="absolute flex w-full h-full flex-col justify-center px-4">
                         <div class="relative">

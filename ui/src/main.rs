@@ -1,6 +1,7 @@
 use leptos::prelude::*;
 use leptos_router::{components::*, path};
 
+use crate::components::i18n_provider::I18nProvider;
 use crate::components::{background::Background, protected_routes::ProtectedRoutes};
 use crate::layouts::AppLayout;
 use crate::model::auth::UserInfo;
@@ -23,17 +24,19 @@ fn App() -> impl IntoView {
     view! {
       <main>
         <Background />
-        <Router>
-          <Routes fallback=|| "🤷‍♂️ Not found.">
-            <ParentRoute path=path!("") view=move || view! { <ProtectedRoutes user_ctx set_user_ctx/> } >
-              <ParentRoute path=path!("") view=AppLayout >
-                <Route path=path!("/") view=move || view! { <Home /> } />
-                <Route path=path!("/charts") view=Charts />
+        <I18nProvider>
+          <Router>
+            <Routes fallback=|| "🤷‍♂️ Not found.">
+              <ParentRoute path=path!("") view=move || view! { <ProtectedRoutes user_ctx set_user_ctx/> } >
+                <ParentRoute path=path!("") view=AppLayout >
+                  <Route path=path!("/") view=move || view! { <Home /> } />
+                  <Route path=path!("/charts") view=Charts />
+                </ParentRoute>
               </ParentRoute>
-            </ParentRoute>
-            <Route path=path!("/login") view=move || view! { <Login set_user_ctx />}/>
-          </Routes>
-        </Router>
+              <Route path=path!("/login") view=move || view! { <Login set_user_ctx />}/>
+            </Routes>
+          </Router>
+        </I18nProvider>
       </main>
     }
 }

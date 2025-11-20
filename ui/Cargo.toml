@@ -23,24 +23,26 @@ serde_json = "1"
 wasm-logger = "0.2"
 tw_merge = { version = "0.1", features = ["variant"] }
 leptos-use = "0.16" # TODO: use `use_local_storage()` this instead of gloo storage
-
-[dependencies.web-sys]
-version = "0.3"
-features = [
+leptos-fluent = "0.2"
+web-sys = { version = "0.3", features = [
   "Document",
   "Element",
   "Node",
-  "Window",
-  "HtmlCollection",
-  "HtmlInputElement",
-  "CssStyleDeclaration",
-  "DomRect",
-  "Document",
-  "DomTokenList",
-  "Navigator",
-  "Blob",
-  "Url",
-  "VisibilityState",
-  "BroadcastChannel",
-  "MessageEvent",
-]
+  # "Window",
+  # "HtmlCollection",
+  # "HtmlInputElement",
+  # "CssStyleDeclaration",
+  # "DomRect",
+  # "Document",
+  # "DomTokenList",
+  # "Navigator",
+  # "Blob",
+  # "Url",
+  # "VisibilityState",
+  # "BroadcastChannel",
+  # "MessageEvent",
+] }
+
+# Relative to Cargo.toml file
+[package.metadata.leptos]
+watch-additional-files = ["locales"]

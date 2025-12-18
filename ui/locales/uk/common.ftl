@@ -1,1 +1,1 @@
-sadhana-pro = Sadhana Pro
+sadhana-pro = Садхана Про

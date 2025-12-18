@@ -1,7 +1,13 @@
 use leptos::prelude::*;
+use leptos_router::hooks::use_navigate;
 use tw_merge::*;
 
-use crate::{components::footer::Footer, layouts::LayoutContext};
+use crate::{
+    components::footer::Footer,
+    layouts::{ButtonAction, HeaderButton, LayoutContext},
+};
+
+pub const HEADER_BUTTON_CSS: &str = "no-underline text-amber-400";
 
 #[component]
 pub fn MobileLayout(children: Children) -> impl IntoView {
@@ -34,6 +40,9 @@ pub fn MobileLayout(children: Children) -> impl IntoView {
                         <div class="relative">
                             <div class="relative sm:max-w-md md:max-w-md lg:max-w-lg xl:max-w-lg 2xl:max-w-lg mx-auto">
                                 <div class="relative flex justify-between py-10">
+                                    {move || {
+                                        let buttons = layout.header_buttons.read_only().get();
+                                        header_button(buttons.left)}}
                                     // {header_button(&left_buttons, nav.clone(), show_ctx_menu.clone())}
                                     // {header_button(&right_buttons, nav.clone(), show_ctx_menu.clone())}
                                 </div>
@@ -75,5 +84,106 @@ pub fn MobileLayout(children: Children) -> impl IntoView {
         <Show when=move || !layout.hide_footer.get() >
             <Footer />
         </Show>
+    }
+}
+
+fn header_button(buttons: Vec<HeaderButton>) -> impl IntoView {
+    let nav = use_navigate();
+    // fn header_button(
+    // buttons: &[&HeaderButtonProps],
+    // nav: Navigator,
+    // show_menu: UseToggleHandle<bool>,
+    // ) -> Html {
+    let css = tw_merge!(
+        HEADER_BUTTON_CSS,
+        if buttons.iter().any(|p| p.label.is_some()) {
+            "text-base font-bold"
+        } else {
+            "text-xl"
+        }
+    );
+
+    // let hide_menu = {
+    //     let menu_toggle = show_menu.clone();
+    //     Callback::from(move |_| menu_toggle.set(false))
+    // };
+
+    let onclick = |action: &ButtonAction| {
+        // let nav = nav.clone();
+        // let show_menu = show_menu.clone();
+
+        match action {
+            ButtonAction::Cb(cb) => todo!(), //cb.clone(),
+            ButtonAction::Navigate(url) => nav(url, Default::default()),
+            // Action::Redirect(to) => {
+            //     let route = to.clone();
+            //     Callback::from(move |_| nav.push(&route))
+            // }
+            // Action::CtxMenu(_) => Callback::from(move |_| show_menu.toggle()),
+        }
+    };
+
+    // let onclick_with_hide = |action: &Action| {
+    //     let hide_menu = hide_menu.clone();
+    //     let onclick = onclick(action);
+    //     Callback::from(move |e: MouseEvent| {
+    //         hide_menu.emit(e.clone());
+    //         onclick.emit(e)
+    //     })
+    // };
+
+    // let ctx_menu_iter_html = |item: &CtxMenuEntry| match &item.action {
+    //     Action::Cb(_) | Action::Redirect(_) => html! {
+    //         <li onclick={onclick_with_hide(&item.action)}>
+    //             <div class="flex px-2 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+    //                 <label>
+    //                     <i class={tw_merge!(item.icon_css.to_owned().unwrap_or_default(), "flex-shrink-0 w-5")} />
+    //                     {&item.label}
+    //                 </label>
+    //             </div>
+    //         </li>
+    //     },
+    //     _ => panic!("Unsupported feature - nested context menus"),
+    // };
+
+    // let ctx_menu_items = |action: &Action| match action {
+    //     Action::CtxMenu(items) => items.iter().map(ctx_menu_iter_html).collect::<Html>(),
+    //     _ => html! {},
+    // };
+
+    view! {
+        <span>
+            {buttons.into_iter().map(|btn| {
+                // clone small pieces we need so the view doesn't borrow from the local `btn`
+                let btn_type = btn.btn_type.clone();
+                let icon = btn.icon.clone().unwrap_or_default();
+                let label = btn.label.clone().unwrap_or_default();
+
+                view! {
+                    <button
+                        type={btn_type.as_str()}
+                        class={css.clone()}
+                        // onclick={onclick(&props.action)}
+                    >
+                        <i class={icon}></i>
+                        {label}
+                    </button>
+                    // if *show_menu && matches!(&props.action, Action::CtxMenu(_)) {
+                    //     <div // Fill on the screen with a div that hides menu on click
+                    //         class="fixed top-0 bottom-0 left-0 right-0 w-full h-full z-10"
+                    //         onclick={
+                    //             let show_menu = show_menu.clone();
+                    //             Callback::from(move |_| show_menu.toggle())
+                    //         }
+                    //     />
+                    //     <ul
+                    //         class={tw_merge!("origin-top-right absolute right-0 w-65 text-gray-800 dark:text-white focus:outline-none z-20 mt-2 py-1", POPUP_BG_CSS)}
+                    //     >
+                    //         {ctx_menu_items(&props.action)}
+                    //     </ul>
+                    // }
+                }
+            }).collect_view()}
+        </span>
     }
 }

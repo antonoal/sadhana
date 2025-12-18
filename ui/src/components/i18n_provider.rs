@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use leptos_fluent::{I18n, Language, leptos_fluent, move_tr};
+use leptos_fluent::leptos_fluent;
 
 #[component]
 pub fn I18nProvider(children: Children) -> impl IntoView {

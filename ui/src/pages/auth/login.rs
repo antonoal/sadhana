@@ -78,23 +78,27 @@ pub fn Login(set_user_ctx: WriteSignal<UserInfo>) -> impl IntoView {
                         </div>
                         <label for="password" class=INPUT_LABEL_CSS>
                             // <i class="icon-key"></i>{format!(" {}", Locale::current().password())}
-                            <i class="icon-key"></i>{" Password"}
+                            <i class="icon-key" />
+                            {" Password"}
                         </label>
                     </div>
                     <div class="relative">
                         <button class=SUBMIT_BTN_CSS type="submit">
                             // <i class="icon-login"></i>{format!(" {}", Locale::current().sign_in())}
-                            <i class="icon-login"></i>{"Submit"}
+                            <i class="icon-login" />
+                            {"Submit"}
                         </button>
                     </div>
-            //         <div class=LINKS_CSS>
-            //             <A class=LINK_CSS href={BaseRoute::PasswordReset.to_path()}>
-            //                 {Locale::current().forgot_password()}
-            //             </A>
-            //             <A class=LINK_CSS_NEW_ACC href={BaseRoute::Register.to_path()}>
-            //                 {Locale::current().need_an_account()}
-            //             </A>
-            //         </div>
+                    <div class=LINKS_CSS>
+                        <a class=LINK_CSS href="/reset">
+                            {"Forgot password?"}
+                            // {Locale::current().forgot_password()}
+                        </a>
+                        <a class=LINK_CSS_NEW_ACC href="/register">
+                            {"Need an acount?"}
+                            // {Locale::current().need_an_account()}
+                        </a>
+                    </div>
             //         <div class="fixed bottom-0 justify-between w-full left-0 flex px-4 py-4">
             //             <A class=LINK_SMALL_CSS href={BaseRoute::About.to_path()}>
             //                 {Locale::current().about()}

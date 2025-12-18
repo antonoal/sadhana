@@ -4,12 +4,30 @@
 ARG VARIANT="bookworm"
 FROM mcr.microsoft.com/devcontainers/rust:1-${VARIANT}
 
-# [Optional] Uncomment this section to install additional packages.
+# ---- system deps ----
+USER root
+
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends libpq-dev pkg-config
+    && apt-get -y install --no-install-recommends \
+        libpq-dev \
+        pkg-config \
+        curl \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# ---- Node.js (for Playwright only) ----
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g npm \
+    && node --version \
+    && npm --version
+
+# ---- Playwright OS dependencies ----
+RUN npx playwright install-deps
 
 USER vscode
 
+# ---- Rust / WASM tooling ----
 RUN rustup target add wasm32-unknown-unknown
 
 RUN cargo install cargo-binstall \

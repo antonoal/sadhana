@@ -37,5 +37,5 @@ pub fn ProtectedRoutes(
 
 /// Get current user info
 async fn current() -> Result<UserInfoWrapper, AppError> {
-    request_api_get("/user".to_string()).await
+    request_api_get("/user").await
 }

@@ -3,7 +3,7 @@ use leptos_router::hooks::use_navigate;
 use tw_merge::*;
 
 use crate::{
-    components::footer::Footer,
+    components::{errors::ErrorBanner, footer::Footer},
     layouts::{ButtonAction, HeaderButton, LayoutContext},
 };
 
@@ -54,7 +54,6 @@ pub fn MobileLayout(children: Children) -> impl IntoView {
                 <div class="relative sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-7xl mx-auto">
                     <div class="relative px-4 py-4 rounded-3xl sm:px-20 md:px-20 lg:px-20 xl:px-30 2xl:px-30">
                         <Show when=move || layout.header_title.get().is_some() >
-
                                         <div class="pb-5 text-center">
                                             <h5 class="text-xl font-medium text-zinc-500 dark:text-zinc-100">
                                                 {layout.header_title.get()}
@@ -76,6 +75,7 @@ pub fn MobileLayout(children: Children) -> impl IntoView {
                         //         selected_date_incomplete={cal.selected_date_incomplete}
                         //         />
                         // }
+                        <ErrorBanner />
                         {children()}
                     </div>
                 </div>

@@ -6,6 +6,8 @@ use leptos::prelude::*;
 use leptos_router::{components::Outlet, hooks::use_location};
 use mobile_layout::MobileLayout;
 
+use crate::components::errors::ErrorContext;
+
 #[derive(Clone)]
 pub struct LayoutContext {
     pub header_title: RwSignal<Option<String>>,
@@ -14,6 +16,27 @@ pub struct LayoutContext {
 }
 
 impl LayoutContext {
+    fn new() -> Self {
+        let header_title = RwSignal::new(None);
+        let hide_footer = RwSignal::new(false);
+        let header_buttons = RwSignal::new(HeaderButtons::new());
+
+        LayoutContext {
+            header_title,
+            hide_footer,
+            header_buttons,
+        }
+    }
+
+    fn provide() {
+        provide_context(Self::new());
+    }
+
+    fn reset(&self) {
+        self.header_title.set(None);
+        self.hide_footer.set(false);
+    }
+
     pub fn set_title<S: Into<String>>(&self, value: S) {
         self.header_title.write_only().set(Some(value.into()));
     }
@@ -26,6 +49,10 @@ impl LayoutContext {
 
     pub fn hide_footer(&self) {
         self.hide_footer.write_only().set(true);
+    }
+
+    pub fn get() -> Self {
+        use_context::<Self>().expect("Could not obtain layout context")
     }
 }
 
@@ -86,29 +113,6 @@ impl ButtonType {
     }
 }
 
-impl LayoutContext {
-    fn new() -> Self {
-        let header_title = RwSignal::new(None);
-        let hide_footer = RwSignal::new(false);
-        let header_buttons = RwSignal::new(HeaderButtons::new());
-
-        LayoutContext {
-            header_title,
-            hide_footer,
-            header_buttons,
-        }
-    }
-
-    fn provide() {
-        provide_context(Self::new());
-    }
-
-    fn reset(&self) {
-        self.header_title.set(None);
-        self.hide_footer.set(false);
-    }
-}
-
 #[component]
 pub fn AppLayout() -> impl IntoView {
     // Placeholder for future switch between mobile and table layouts
@@ -119,9 +123,10 @@ pub fn AppLayout() -> impl IntoView {
     // Should be before the call to obtain the context
     LayoutContext::provide();
 
-    let layout = use_context::<LayoutContext>().expect("Could not obtain layout context");
+    let layout = LayoutContext::get();
+    let errors = ErrorContext::get();
 
-    // Reset layout on navigation
+    // Reset layout & errors on navigation
     Effect::new(move || {
         let _ = loc.pathname.get(); // triggers on navigation
 
@@ -130,8 +135,9 @@ pub fn AppLayout() -> impl IntoView {
             log::debug!("Skipping clearing layout context on first load");
             first_load.set(false);
         } else {
-            log::debug!("Clearing layout context");
+            log::debug!("Clearing layout & error contexts");
             layout.reset();
+            errors.reset();
         }
     });
 

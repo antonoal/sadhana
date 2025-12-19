@@ -1,20 +1,26 @@
+use super::about_url;
+use crate::components::errors::ErrorContext;
+use crate::components::loading_context::LoadingContext;
 use crate::services::auth::set_token;
 use crate::{css::*, model::auth::*, services::requests::request_api_post};
 
 use common::error::AppError;
 use leptos::ev::SubmitEvent;
 use leptos::prelude::*;
+use leptos_fluent::{move_tr, tr};
 use leptos_router::hooks::use_navigate;
 
 #[component]
 pub fn Login(set_user_ctx: WriteSignal<UserInfo>) -> impl IntoView {
+    let loader = LoadingContext::get();
+    let errors = ErrorContext::get();
+
     let (login_info, set_login_info) = signal(LoginInfo::default());
     let (show_pwd, set_show_pwd) = signal(false);
-    let user_login = Action::new_local(|login_info: &LoginInfo| {
-        let login_info = LoginInfoWrapper {
-            user: login_info.clone(),
-        };
-        async move { login(login_info).await }
+
+    let user_login = loader.start_action(move |login_info: &LoginInfo| {
+        let user = login_info.clone();
+        async move { login(user).await }
     });
 
     let navigate = use_navigate();
@@ -27,6 +33,10 @@ pub fn Login(set_user_ctx: WriteSignal<UserInfo>) -> impl IntoView {
             log::debug!("Redirecting to the home page");
             navigate("/", Default::default());
         }
+
+        if let Some(Err(err)) = user_login.value().get() {
+            errors.errors.set(vec![err]);
+        }
     });
 
     // let error_formatter = move |err| match err {
@@ -37,7 +47,6 @@ pub fn Login(set_user_ctx: WriteSignal<UserInfo>) -> impl IntoView {
     // };
 
     view! {
-        // <BlankPage header_label=Locale::current().login() loading=loading()>
         // <ListErrors error=error() error_formatter=error_formatter />
             <form on:submit=move |ev: SubmitEvent| {
                 ev.prevent_default(); // prevent page reload
@@ -77,42 +86,37 @@ pub fn Login(set_user_ctx: WriteSignal<UserInfo>) -> impl IntoView {
                             />
                         </div>
                         <label for="password" class=INPUT_LABEL_CSS>
-                            // <i class="icon-key"></i>{format!(" {}", Locale::current().password())}
                             <i class="icon-key" />
-                            {" Password"}
+                            {move || format!(" {}", tr!("auth-password"))}
                         </label>
                     </div>
                     <div class="relative">
                         <button class=SUBMIT_BTN_CSS type="submit">
-                            // <i class="icon-login"></i>{format!(" {}", Locale::current().sign_in())}
                             <i class="icon-login" />
-                            {"Submit"}
+                            {move || format!(" {}", tr!("auth-sign_in"))}
                         </button>
                     </div>
                     <div class=LINKS_CSS>
                         <a class=LINK_CSS href="/reset">
-                            {"Forgot password?"}
-                            // {Locale::current().forgot_password()}
+                            {move_tr!("auth-forgot_password")}
                         </a>
                         <a class=LINK_CSS_NEW_ACC href="/register">
-                            {"Need an acount?"}
-                            // {Locale::current().need_an_account()}
+                            {move_tr!("auth-need_account")}
                         </a>
                     </div>
-            //         <div class="fixed bottom-0 justify-between w-full left-0 flex px-4 py-4">
-            //             <A class=LINK_SMALL_CSS href={BaseRoute::About.to_path()}>
-            //                 {Locale::current().about()}
-            //             </A>
-            //             <A class=LINK_SMALL_CSS href={BaseRoute::Help.to_path()}>
-            //                 {Locale::current().help_and_support()}
-            //             </A>
-            //         </div>
+                    <div class="fixed bottom-0 justify-between w-full left-0 flex px-4 py-4">
+                        <a class=LINK_SMALL_CSS href=about_url>
+                            {move_tr!("auth-about")}
+                        </a>
+                        <a class=LINK_SMALL_CSS href="/help">
+                            {move_tr!("auth-help_and_support")}
+                        </a>
+                    </div>
                 </div>
             </form>
-        // </BlankPage>
     }
 }
 
-async fn login(login_info: LoginInfoWrapper) -> Result<UserInfoWrapper, AppError> {
-    request_api_post("/users/login".to_string(), &login_info).await
+async fn login(login_info: LoginInfo) -> Result<UserInfoWrapper, AppError> {
+    request_api_post("/users/login", &LoginInfoWrapper::from(login_info)).await
 }

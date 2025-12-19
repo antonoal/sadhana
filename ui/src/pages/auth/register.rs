@@ -1,18 +1,12 @@
+use super::about_url;
 use crate::layouts::{ButtonAction, ButtonType, HeaderButton, HeaderButtons};
 use crate::{css::*, layouts::LayoutContext, model::auth::*, services::requests::request_api_post};
 
 use common::error::AppError;
 use leptos::ev::SubmitEvent;
 use leptos::prelude::*;
-use leptos_fluent::{I18n, move_tr, tr};
-use leptos_router::components::A;
+use leptos_fluent::{move_tr, tr};
 use leptos_router::hooks::use_navigate;
-
-// TODO: move somewhere common where can be used by About link on the Settings page
-fn about_url() -> String {
-    let i18n = expect_context::<I18n>();
-    format!("https://sadhana.pro/{}", i18n.language.get().id)
-}
 
 #[component]
 pub fn Register() -> impl IntoView {
@@ -68,26 +62,28 @@ pub fn Register() -> impl IntoView {
                             required=true
                         />
                         <label for="email" class=INPUT_LABEL_CSS>
-                            <i class="icon-mail"></i>{move || format!(" {}", tr!("auth_email"))}
+                            <i class="icon-mail"/>
+                            {move || format!(" {}", tr!("auth_email"))}
                         </label>
                     </div>
                     <div class="relative">
                         <button class=SUBMIT_BTN_CSS type="submit">
-                            <i class="icon-login"></i>{move || format!(" {}", tr!("auth_sign-up"))}
+                            <i class="icon-login"/>
+                            {move || format!(" {}", tr!("auth_sign-up"))}
                         </button>
                     </div>
                     <div class=LINKS_CSS>
-                        <A href="/reset-pwd">
+                        <a href="/reset-pwd">
                             {move_tr!("auth_forgot-password")}
-                        </A>
+                        </a>
                     </div>
                     <div class="fixed bottom-0 justify-between w-full left-0 flex px-4 py-4 text-sm">
-                        <A href=move || about_url()>
+                        <a href=about_url>
                             {move_tr!("auth_about")}
-                        </A>
-                        <A href="/help">
+                        </a>
+                        <a href="/help">
                             {move_tr!("auth_help-and-support")}
-                        </A>
+                        </a>
                     </div>
                 </div>
             </form>
@@ -96,5 +92,5 @@ pub fn Register() -> impl IntoView {
 }
 
 async fn login(login_info: LoginInfoWrapper) -> Result<UserInfoWrapper, AppError> {
-    request_api_post("/users/login".to_string(), &login_info).await
+    request_api_post("/users/login", &login_info).await
 }

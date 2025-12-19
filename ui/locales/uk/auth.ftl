@@ -1,6 +1,10 @@
-auth_reg-title = Зареєструватись
-auth_forgot-password = Have an account?
-auth_help-and-support = Help and support
-auth_about = About
-auth_email = Email address
-auth_sign-up = Sign up
+auth-reg_title = Зареєструватись
+auth-have_an_account = Have an account?
+auth-help_and_support = Help and support
+auth-about = About
+auth-email = Email address
+auth-sign_up = Sign up
+auth-password = Password
+auth-sign_in = Sign in
+auth-forgot_password = Forgot password?
+auth-need_account = Need an account?

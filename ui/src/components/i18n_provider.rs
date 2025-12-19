@@ -11,6 +11,6 @@ pub fn I18nProvider(children: Children) -> impl IntoView {
         initial_language_from_local_storage: true,
         initial_language_from_navigator: true,
         initial_language_from_navigator_to_local_storage: true,
-        check_translations: "./src/**/*.rs",
+        // check_translations: "./src/**/*.rs",
     }
 }

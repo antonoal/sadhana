@@ -69,4 +69,25 @@ impl LoadingContext {
             is_loading_delayed,
         });
     }
+
+    pub fn start_action<I, O, F, Fu>(&self, action_fn: F) -> Action<I, O>
+    where
+        I: 'static,
+        O: 'static,
+        F: Fn(&I) -> Fu + 'static,
+        Fu: Future<Output = O> + 'static,
+    {
+        let start = self.start.clone();
+        let stop = self.stop.clone();
+        Action::new_local(move |v| {
+            start();
+            let res = action_fn(v);
+            stop();
+            res
+        })
+    }
+
+    pub fn get() -> Self {
+        use_context::<Self>().expect("Could not obtain loading context")
+    }
 }

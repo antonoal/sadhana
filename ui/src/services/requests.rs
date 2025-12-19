@@ -11,7 +11,7 @@ lazy_static! {
 }
 
 /// build all kinds of http request: post/get/delete etc.
-pub async fn request<B, T>(method: reqwest::Method, url: String, body: &B) -> Result<T, AppError>
+pub async fn request<B, T>(method: reqwest::Method, url: &str, body: &B) -> Result<T, AppError>
 where
     T: DeserializeOwned + 'static + std::fmt::Debug,
     B: Serialize + std::fmt::Debug,
@@ -74,20 +74,16 @@ where
     }
 }
 
-pub async fn request_api<B, T>(
-    method: reqwest::Method,
-    url: String,
-    body: &B,
-) -> Result<T, AppError>
+pub async fn request_api<B, T>(method: reqwest::Method, url: &str, body: &B) -> Result<T, AppError>
 where
     T: DeserializeOwned + 'static + std::fmt::Debug,
     B: Serialize + std::fmt::Debug,
 {
-    request(method, format!("/api{url}"), body).await
+    request(method, format!("/api{url}").as_str(), body).await
 }
 
 /// Delete api request
-pub async fn request_api_delete<T>(url: String) -> Result<T, AppError>
+pub async fn request_api_delete<T>(url: &str) -> Result<T, AppError>
 where
     T: DeserializeOwned + 'static + std::fmt::Debug,
 {
@@ -95,7 +91,7 @@ where
 }
 
 /// Get api request
-pub async fn request_api_get<T>(url: String) -> Result<T, AppError>
+pub async fn request_api_get<T>(url: &str) -> Result<T, AppError>
 where
     T: DeserializeOwned + 'static + std::fmt::Debug,
 {
@@ -103,7 +99,7 @@ where
 }
 
 /// Post api request
-pub async fn request_api_post<T, B>(url: String, body: &B) -> Result<T, AppError>
+pub async fn request_api_post<T, B>(url: &str, body: &B) -> Result<T, AppError>
 where
     T: DeserializeOwned + 'static + std::fmt::Debug,
     B: Serialize + std::fmt::Debug,
@@ -112,7 +108,7 @@ where
 }
 
 /// Put api request with a body
-pub async fn request_api_put<B, T>(url: String, body: &B) -> Result<T, AppError>
+pub async fn request_api_put<B, T>(url: &str, body: &B) -> Result<T, AppError>
 where
     T: DeserializeOwned + 'static + std::fmt::Debug,
     B: Serialize + std::fmt::Debug,
@@ -121,7 +117,7 @@ where
 }
 
 /// Get request
-pub async fn request_get<T>(url: String) -> Result<T, AppError>
+pub async fn request_get<T>(url: &str) -> Result<T, AppError>
 where
     T: DeserializeOwned + 'static + std::fmt::Debug,
 {

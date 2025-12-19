@@ -3,13 +3,14 @@ use leptos_router::{components::*, path};
 
 use crate::{
     components::{
-        background::Background, i18n_provider::I18nProvider, loading_context::LoadingContext,
-        loading_overlay::LoadingOverlay, protected_routes::ProtectedRoutes,
+        background::Background, errors::ErrorContext, i18n_provider::I18nProvider,
+        loading_context::LoadingContext, loading_overlay::LoadingOverlay,
+        protected_routes::ProtectedRoutes,
     },
     layouts::AppLayout,
-    model::auth::UserInfo,
+    model::auth::{ConfirmationType, UserInfo},
     pages::{
-        auth::{login::Login, register::Register},
+        auth::{confirmation::Confirmation, login::Login, register::Register},
         charts::Charts,
         home::Home,
     },
@@ -29,6 +30,7 @@ fn App() -> impl IntoView {
     provide_context(user_ctx);
 
     LoadingContext::provide();
+    ErrorContext::provide();
 
     view! {
       <main>
@@ -43,7 +45,7 @@ fn App() -> impl IntoView {
                   <Route path=path!("/charts") view=Charts />
                 </ParentRoute>
                 <Route path=path!("/login") view=move || view! { <Login set_user_ctx />} />
-                <Route path=path!("/register") view=move || view! { <Register />} />
+                <Route path=path!("/register") view=move || view! { <Confirmation confirmation_type=ConfirmationType::Registration />} />
               </ParentRoute>
             </Routes>
           </Router>

@@ -87,6 +87,14 @@ impl LoadingContext {
         })
     }
 
+    pub fn start_resource<T, F>(&self, f: impl Fn() -> F + 'static) -> LocalResource<T>
+    where
+        T: 'static,
+        F: Future<Output = T> + 'static,
+    {
+        todo!()
+    }
+
     pub fn get() -> Self {
         use_context::<Self>().expect("Could not obtain loading context")
     }

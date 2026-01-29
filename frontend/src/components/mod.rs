@@ -9,4 +9,3 @@ pub mod prompt;
 pub mod pwd;
 pub mod share_link;
 pub mod summary_details;
-pub mod user_context_provider;

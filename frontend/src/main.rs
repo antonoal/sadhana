@@ -4,8 +4,9 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use components::user_context_provider::UserContextProvider;
-use context::{AppUpdateContextProvider, NetworkStatusProvider, SessionStateProvider};
+use context::{
+    AppUpdateContextProvider, NetworkStatusProvider, SessionStateProvider, UserContextProvider,
+};
 use pages::*;
 
 mod components;

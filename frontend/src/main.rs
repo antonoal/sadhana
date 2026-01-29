@@ -7,7 +7,7 @@ use yew_router::prelude::*;
 use context::{
     AppUpdateContextProvider, NetworkStatusProvider, SessionStateProvider, UserContextProvider,
 };
-use pages::*;
+use routes::*;
 
 mod components;
 mod context;
@@ -17,6 +17,7 @@ mod i18n;
 mod layouts;
 mod model;
 mod pages;
+mod routes;
 mod services;
 mod utils;
 mod web_sys_ext;

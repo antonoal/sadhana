@@ -18,11 +18,10 @@ use crate::{
     hooks::{use_cache_aware_async, use_visibility},
     i18n::{Locale, PracticeName},
     model::{DiaryEntry, PracticeDataType, Value},
+    routes::AppRoute,
     services::{get_diary_day, get_user_practices, save_diary_entry},
     utils::time_dur_input_support::*,
 };
-
-use super::AppRoute;
 
 #[function_component(Home)]
 pub fn home() -> Html {

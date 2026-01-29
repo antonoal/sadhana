@@ -15,12 +15,11 @@ use crate::{
     hooks::use_cache_aware_async,
     i18n::Locale,
     model::UserPractice,
+    routes::AppRoute,
     services::{
         delete_user_practice, get_user_practices, reorder_user_practices, update_user_practice,
     },
 };
-
-use super::AppRoute;
 
 #[function_component(UserPractices)]
 pub fn user_practices() -> Html {

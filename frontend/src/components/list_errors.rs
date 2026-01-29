@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{i18n::Locale, routes::AppRoute};
+use crate::{i18n::Locale, routes::PublicRoute};
 use common::error::AppError;
 use yew::prelude::*;
 use yew_router::prelude::{Navigator, use_navigator};
@@ -22,7 +22,7 @@ fn default(error: &AppError, nav: Navigator) -> Html {
         AppError::RequestError => p(Locale::current().request_error()),
         AppError::InternalServerError => p(Locale::current().internal_server_error()),
         AppError::Unauthorized(_) => {
-            nav.push(&AppRoute::Login);
+            nav.push(&PublicRoute::Login);
             p(Locale::current().unauthorized())
         }
         _ => p(error),

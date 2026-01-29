@@ -7,7 +7,7 @@ use crate::{
     css::*,
     i18n::Locale,
     model,
-    routes::AppRoute,
+    routes::PublicRoute,
     services::{get_signup_link_details, reset_pwd},
 };
 use common::error::AppError;
@@ -80,7 +80,7 @@ pub fn pwd_reset(props: &Props) -> Html {
 
     if *finished {
         alert(&Locale::current().reset_success_alert());
-        return html! { <Redirect<AppRoute> to={AppRoute::Login} /> };
+        return html! { <Redirect<PublicRoute> to={PublicRoute::Login} /> };
     }
 
     html! {

@@ -6,7 +6,7 @@ use yew_hooks::prelude::*;
 use yew_router::prelude::*;
 
 use crate::{
-    AppRoute,
+    PublicRoute,
     components::{blank_page::BlankPage, list_errors::ListErrors},
     i18n::*,
     model::SendConfirmationLink,
@@ -112,9 +112,9 @@ pub fn confirmation(props: &Props) -> Html {
                         </div>
                         if props.confirmation_type == ConfirmationType::Registration {
                             <div class="relative flex justify-between sm:text-base">
-                                <Link<AppRoute> classes={LINK_CSS} to={AppRoute::Login}>
+                                <Link<PublicRoute> classes={LINK_CSS} to={PublicRoute::Login}>
                                     { Locale::current().have_an_account() }
-                                </Link<AppRoute>>
+                                </Link<PublicRoute>>
                             </div>
                         }
                         <div

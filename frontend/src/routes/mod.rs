@@ -1,4 +1,5 @@
 use yew::prelude::*;
+use yew_hooks::use_window_size;
 use yew_router::prelude::*;
 
 use crate::pages::{
@@ -6,6 +7,7 @@ use crate::pages::{
     confirmation::Confirmation,
     home::Home,
     login::Login,
+    practices::edit_yatra_practice::EditYatraPractice,
     practices::{Mode, edit_user_practice::EditUserPractice, new_practice::NewPractice},
     pwd_reset::PwdReset,
     register_with_id::RegisterWithId,
@@ -16,36 +18,35 @@ use crate::pages::{
     user_practices::UserPractices,
     yatras::{Yatras, admin_settings::AdminSettings, join::JoinYatra, settings::YatraSettings},
 };
-use crate::{model::ConfirmationType, pages::practices::edit_yatra_practice::EditYatraPractice};
+use crate::{layouts::*, model::ConfirmationType};
 
-/// Routes that need not user cntext to be loaded
 #[derive(Clone, Routable, PartialEq)]
-pub enum BaseRoute {
+pub enum PublicRoute {
     #[at("/reset")]
     PasswordReset,
     #[at("/reset/:id")]
     PasswordResetWithConfirmationId { id: String },
+    #[at("/register/:id")]
+    RegisterWithConfirmationId { id: String },
+    #[at("/login")]
+    Login,
     #[at("/register")]
     Register,
     #[at("/shared/:id")]
     SharedCharts { id: String },
     #[at("/help")]
     Help,
+    #[at("/")]
+    Default,
     #[at("/*")]
     AppRoute,
-    #[at("/")]
-    Home,
 }
 
 /// Routes that depend on user context being loaded
 #[derive(Clone, Routable, PartialEq)]
 pub enum AppRoute {
     #[at("/")]
-    Home,
-    #[at("/register/:id")]
-    RegisterWithConfirmationId { id: String },
-    #[at("/login")]
-    Login,
+    Default,
     #[at("/settings")]
     Settings,
     #[at("/settings/edit-user")]
@@ -87,11 +88,15 @@ pub enum AppRoute {
     NotFound,
 }
 
-fn app_switch(routes: AppRoute) -> Html {
-    match routes {
-        AppRoute::Home => html! { <Home /> },
-        AppRoute::RegisterWithConfirmationId { id } => html! { <RegisterWithId id={id} /> },
-        AppRoute::Login => html! { <Login /> },
+fn app_switch(route: AppRoute, single_pane_layout: bool) -> Html {
+    match route {
+        AppRoute::Default => html! {
+            if single_pane_layout {
+                <Home />
+            } else {
+                <Charts />
+            }
+        },
         AppRoute::Settings => html! { <Settings /> },
         AppRoute::EditUser => html! { <EditUser /> },
         AppRoute::EditPassword => html! { <EditPassword /> },
@@ -124,19 +129,38 @@ fn app_switch(routes: AppRoute) -> Html {
     }
 }
 
-pub fn switch(routes: BaseRoute) -> Html {
-    match routes {
-        BaseRoute::PasswordReset => {
+pub fn root_switch(route: PublicRoute) -> Html {
+    match route {
+        PublicRoute::PasswordReset => {
             html! { <Confirmation confirmation_type={ConfirmationType::PasswordReset} /> }
         }
-        BaseRoute::PasswordResetWithConfirmationId { id } => html! { <PwdReset id={id} /> },
-        BaseRoute::Register => {
+        PublicRoute::RegisterWithConfirmationId { id } => html! { <RegisterWithId id={id} /> },
+        PublicRoute::Login => html! { <Login /> },
+        PublicRoute::PasswordResetWithConfirmationId { id } => html! { <PwdReset id={id} /> },
+        PublicRoute::Register => {
             html! { <Confirmation confirmation_type={ConfirmationType::Registration} /> }
         }
-        BaseRoute::SharedCharts { id } => html! { <SharedCharts share_id={id} /> },
-        BaseRoute::Help => html! { <Help /> },
-        BaseRoute::Home | BaseRoute::AppRoute => {
-            html! { <Switch<AppRoute> render={app_switch} /> }
+        PublicRoute::SharedCharts { id } => html! { <SharedCharts share_id={id} /> },
+        PublicRoute::Help => html! { <Help /> },
+        PublicRoute::Default | PublicRoute::AppRoute => {
+            html! { <AppLayout /> }
+        }
+    }
+}
+
+#[function_component(AppLayout)]
+fn app_layout() -> Html {
+    let window = use_window_size();
+
+    html! {
+        if window.0 >= 1024.0 {
+            <TwoPane>
+                <Switch<AppRoute> render={|route| app_switch(route, false)} />
+            </TwoPane>
+        } else {
+            <SinglePane>
+                <Switch<AppRoute> render={|route| app_switch(route, true)} />
+            </SinglePane>
         }
     }
 }

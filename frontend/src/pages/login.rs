@@ -5,7 +5,7 @@ use yew_hooks::prelude::*;
 use yew_router::prelude::*;
 
 use crate::{
-    BaseRoute,
+    PublicRoute,
     components::{blank_page::BlankPage, list_errors::ListErrors},
     css::*,
     hooks::use_user_context,
@@ -134,12 +134,12 @@ pub fn login() -> Html {
                         </button>
                     </div>
                     <div class={LINKS_CSS}>
-                        <Link<BaseRoute> classes={LINK_CSS} to={BaseRoute::PasswordReset}>
+                        <Link<PublicRoute> classes={LINK_CSS} to={PublicRoute::PasswordReset}>
                             { Locale::current().forgot_password() }
-                        </Link<BaseRoute>>
-                        <Link<BaseRoute> classes={LINK_CSS_NEW_ACC} to={BaseRoute::Register}>
+                        </Link<PublicRoute>>
+                        <Link<PublicRoute> classes={LINK_CSS_NEW_ACC} to={PublicRoute::Register}>
                             { Locale::current().need_an_account() }
-                        </Link<BaseRoute>>
+                        </Link<PublicRoute>>
                     </div>
                     <div class="fixed bottom-0 justify-between w-full left-0 flex px-4 py-4">
                         <a
@@ -150,9 +150,9 @@ pub fn login() -> Html {
                         >
                             { Locale::current().about() }
                         </a>
-                        <Link<BaseRoute> classes={LINK_SMALL_CSS} to={BaseRoute::Help}>
+                        <Link<PublicRoute> classes={LINK_SMALL_CSS} to={PublicRoute::Help}>
                             { Locale::current().help_and_support() }
-                        </Link<BaseRoute>>
+                        </Link<PublicRoute>>
                     </div>
                 </div>
             </form>

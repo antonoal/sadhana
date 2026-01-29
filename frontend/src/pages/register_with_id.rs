@@ -10,7 +10,7 @@ use crate::{
     hooks::use_user_context,
     i18n::Locale,
     model::{RegisterInfo, RegisterInfoWrapper},
-    routes::AppRoute,
+    routes::PublicRoute,
     services,
 };
 
@@ -164,9 +164,9 @@ pub fn register_with_id(props: &Props) -> Html {
                         </div>
                         <Pwd onchange={oninput_password} />
                         <div class="relative flex justify-between sm:text-base">
-                            <Link<AppRoute> classes={LINK_CSS} to={AppRoute::Login}>
+                            <Link<PublicRoute> classes={LINK_CSS} to={PublicRoute::Login}>
                                 { Locale::current().have_an_account() }
-                            </Link<AppRoute>>
+                            </Link<PublicRoute>>
                         </div>
                         <div class="relative">
                             <button class={SUBMIT_BTN_CSS}>{ Locale::current().sign_up() }</button>

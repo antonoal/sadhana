@@ -13,7 +13,7 @@ use crate::{
     hooks::use_cache_aware_async,
     i18n::*,
     model::UserPractice,
-    routes::DROPDOWN_PRACTICE_TYPES,
+    pages::DROPDOWN_PRACTICE_TYPES,
     services::{self, get_user_practice},
 };
 

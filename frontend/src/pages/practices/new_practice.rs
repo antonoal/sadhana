@@ -14,7 +14,7 @@ use crate::{
     css::*,
     i18n::*,
     model::{NewUserPractice, NewYatraPractice},
-    routes::{
+    pages::{
         DROPDOWN_PRACTICE_TYPES,
         practices::{COLOUR_ZONE_DATA_TYPES, Mode},
     },

@@ -16,7 +16,7 @@ use self::{
     user_practices::UserPractices,
     yatras::{admin_settings::AdminSettings, join::JoinYatra, settings::YatraSettings, Yatras},
 };
-use crate::{model::ConfirmationType, routes::practices::edit_yatra_practice::EditYatraPractice};
+use crate::{model::ConfirmationType, pages::practices::edit_yatra_practice::EditYatraPractice};
 
 pub mod charts;
 pub mod confirmation;

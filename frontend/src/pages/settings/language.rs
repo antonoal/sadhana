@@ -2,7 +2,7 @@ use crate::{
     components::blank_page::{BlankPage, HeaderButtonProps},
     css::*,
     i18n::{Locale, DEFAULT_LANGUAGE_KEY, LANGUAGE_DATA, USER_LANGUAGE_STORAGE_KEY},
-    routes::AppRoute,
+    pages::AppRoute,
 };
 use gloo::storage::{LocalStorage, Storage};
 use web_sys::HtmlInputElement;

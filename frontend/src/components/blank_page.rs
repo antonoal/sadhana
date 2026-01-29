@@ -12,7 +12,7 @@ use crate::{
     css::*,
     hooks::use_visibility,
     i18n::Locale,
-    routes::AppRoute,
+    pages::AppRoute,
     services::requests,
     utils::service_worker::get_service_worker,
 };

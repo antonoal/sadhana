@@ -11,7 +11,7 @@ use crate::{
     hooks::use_user_context,
     i18n::*,
     model::*,
-    routes::AppRoute,
+    pages::AppRoute,
     services,
 };
 

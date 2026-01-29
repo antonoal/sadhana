@@ -6,7 +6,7 @@ use crate::{
     },
     css::*,
     i18n::Locale,
-    routes::charts::ReportForm,
+    pages::charts::ReportForm,
     services::report::create_new_report,
 };
 use gloo::storage::{LocalStorage, Storage};

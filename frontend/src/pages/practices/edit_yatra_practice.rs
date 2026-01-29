@@ -21,7 +21,7 @@ use crate::{
         BetterDirection, Bound, ColourZonesConfig, DailyScoreConfig, PracticeDataType, Value,
         YatraPractice, ZoneColour,
     },
-    routes::practices::COLOUR_ZONE_DATA_TYPES,
+    pages::practices::COLOUR_ZONE_DATA_TYPES,
     services::{get_yatra_practice, update_yatra_practice},
     tr,
     utils::time_dur_input_support::*,

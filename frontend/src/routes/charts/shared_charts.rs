@@ -4,7 +4,8 @@ use crate::{
         blank_page::{BlankPage, CalendarProps},
         list_errors::ListErrors,
     },
-    hooks::{Session, use_cache_aware_async},
+    context::Session,
+    hooks::use_cache_aware_async,
     routes::charts::{Report, SelectedReportId},
     services::{
         get_shared_practices,

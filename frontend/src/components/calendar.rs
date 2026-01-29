@@ -7,7 +7,8 @@ use yew::prelude::*;
 use yew_hooks::use_mount;
 
 use crate::{
-    hooks::{Session, SessionAction, use_cache_aware_async},
+    context::{Session, SessionAction},
+    hooks::use_cache_aware_async,
     i18n::Locale,
     services::{get_incomplete_days, requests::GetApiRequest},
 };

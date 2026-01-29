@@ -6,12 +6,14 @@ use yew_router::prelude::*;
 
 use crate::routes::*;
 use components::user_context_provider::UserContextProvider;
-use hooks::{AppUpdateContextProvider, NetworkStatusProvider, SessionStateProvider};
+use context::{AppUpdateContextProvider, NetworkStatusProvider, SessionStateProvider};
 
 mod components;
+mod context;
 mod css;
 mod hooks;
 mod i18n;
+mod layouts;
 mod model;
 mod routes;
 mod services;

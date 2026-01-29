@@ -9,8 +9,9 @@ use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 use crate::{
+    context::{Session, SessionAction},
     css::POPUP_BG_CSS,
-    hooks::{Session, SessionAction, use_cache_aware_async},
+    hooks::use_cache_aware_async,
     i18n::{DAYS, Locale},
     services::{get_incomplete_days, requests::GetApiRequest},
 };

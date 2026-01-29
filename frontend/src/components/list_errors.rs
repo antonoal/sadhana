@@ -1,9 +1,9 @@
 use std::fmt::Display;
 
-use crate::{i18n::Locale, pages::AppRoute};
+use crate::{i18n::Locale, routes::AppRoute};
 use common::error::AppError;
 use yew::prelude::*;
-use yew_router::prelude::{use_navigator, Navigator};
+use yew_router::prelude::{Navigator, use_navigator};
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {

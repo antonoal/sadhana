@@ -21,7 +21,7 @@ use crate::{
         BetterDirection, Bound, ColourZonesConfig, UserYatraData, Value, Yatra, YatraData,
         ZoneColour,
     },
-    pages::AppRoute,
+    routes::AppRoute,
     services::{create_yatra, get_user_yatras, get_yatra_data, requests::GetApiRequest},
     tr,
 };

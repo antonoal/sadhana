@@ -11,7 +11,7 @@ use crate::{
     css::*,
     hooks::{use_cache_aware_async, use_user_context},
     i18n::*,
-    pages::AppRoute,
+    routes::AppRoute,
     services::get_version,
 };
 

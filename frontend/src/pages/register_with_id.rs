@@ -10,7 +10,7 @@ use crate::{
     hooks::use_user_context,
     i18n::Locale,
     model::{RegisterInfo, RegisterInfoWrapper},
-    pages::AppRoute,
+    routes::AppRoute,
     services,
 };
 

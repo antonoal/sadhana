@@ -8,7 +8,7 @@ use crate::{
     css::*,
     hooks::use_cache_aware_async,
     i18n::Locale,
-    pages::AppRoute,
+    routes::AppRoute,
     services,
 };
 

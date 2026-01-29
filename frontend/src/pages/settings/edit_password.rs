@@ -6,7 +6,7 @@ use crate::{
     },
     css::*,
     i18n::Locale,
-    pages::AppRoute,
+    routes::AppRoute,
     services,
 };
 use web_sys::HtmlInputElement;

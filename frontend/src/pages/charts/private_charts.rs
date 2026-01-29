@@ -14,7 +14,7 @@ use crate::{
     hooks::{use_cache_aware_async, use_user_context},
     i18n::Locale,
     model::ReportData,
-    routes::AppRoute,
+    pages::AppRoute,
     services::{get_user_practices, report::*, requests::RequestOptions},
 };
 use common::ReportDuration;

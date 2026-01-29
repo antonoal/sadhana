@@ -26,7 +26,7 @@ use crate::{
     hooks::use_cache_aware_async,
     i18n::*,
     model::{DiaryDay, DiaryEntry, PracticeDataType, Value},
-    routes::AppRoute,
+    pages::AppRoute,
     services::{get_user_practices, save_diary_owned},
 };
 

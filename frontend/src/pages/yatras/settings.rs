@@ -16,7 +16,7 @@ use crate::{
     hooks::use_cache_aware_async,
     i18n::Locale,
     model::{PracticeDataType, YatraUserPractice},
-    routes::AppRoute,
+    pages::AppRoute,
     services::{
         create_yatra, get_user_practices, get_yatra, get_yatra_user_practices, is_yatra_admin,
         update_yatra_user_practices, yatra_leave,

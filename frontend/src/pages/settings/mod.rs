@@ -3,7 +3,7 @@ use crate::{
     context::AppUpdate,
     css::*,
     hooks::use_user_context,
-    routes::{AppRoute, BaseRoute},
+    pages::{AppRoute, BaseRoute},
     tr,
 };
 use gloo::storage::{LocalStorage, Storage};

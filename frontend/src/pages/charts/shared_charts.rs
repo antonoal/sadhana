@@ -6,7 +6,7 @@ use crate::{
     },
     context::Session,
     hooks::use_cache_aware_async,
-    routes::charts::{Report, SelectedReportId},
+    pages::charts::{Report, SelectedReportId},
     services::{
         get_shared_practices,
         report::{get_shared_report_data, get_shared_reports},

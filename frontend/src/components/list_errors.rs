@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{i18n::Locale, routes::AppRoute};
+use crate::{i18n::Locale, pages::AppRoute};
 use common::error::AppError;
 use yew::prelude::*;
 use yew_router::prelude::{use_navigator, Navigator};

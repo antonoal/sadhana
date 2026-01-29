@@ -1,7 +1,7 @@
 use crate::{
     hooks::use_cache_aware_async,
     model::UserInfo,
-    routes::AppRoute,
+    pages::AppRoute,
     services::{
         current,
         requests::{get_token, set_token},

@@ -4,9 +4,9 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::routes::*;
 use components::user_context_provider::UserContextProvider;
 use context::{AppUpdateContextProvider, NetworkStatusProvider, SessionStateProvider};
+use pages::*;
 
 mod components;
 mod context;
@@ -15,7 +15,7 @@ mod hooks;
 mod i18n;
 mod layouts;
 mod model;
-mod routes;
+mod pages;
 mod services;
 mod utils;
 mod web_sys_ext;

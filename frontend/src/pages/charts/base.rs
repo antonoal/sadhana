@@ -11,8 +11,8 @@ use crate::{
     },
     css::*,
     i18n::Locale,
-    model::{PracticeDataType, Value, ReportDataEntry, UserPractice},
-    routes::charts::GridReport,
+    model::{PracticeDataType, ReportDataEntry, UserPractice, Value},
+    pages::charts::GridReport,
 };
 use chrono::{Datelike, Local};
 use common::ReportDuration;

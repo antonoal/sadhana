@@ -7,7 +7,7 @@ use crate::{
     css::*,
     i18n::Locale,
     model,
-    routes::AppRoute,
+    pages::AppRoute,
     services::{get_signup_link_details, reset_pwd},
 };
 use common::error::AppError;

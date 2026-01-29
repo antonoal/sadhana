@@ -3,7 +3,7 @@ use crate::{
     context::AppUpdate,
     css::*,
     hooks::use_user_context,
-    routes::{AppRoute, BaseRoute},
+    routes::{AppRoute, PublicRoute},
     tr,
 };
 use gloo::storage::{LocalStorage, Storage};
@@ -75,7 +75,7 @@ pub fn settings() -> Html {
     let help_onclick = {
         let nav = nav.clone();
         Callback::from(move |_: MouseEvent| {
-            nav.push(&BaseRoute::Help);
+            nav.push(&PublicRoute::Help);
         })
     };
 

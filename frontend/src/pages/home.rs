@@ -244,7 +244,7 @@ pub fn home() -> Html {
         <BlankPage
             right_button={HeaderButtonProps::new_icon_redirect(AppRoute::UserPractices, "icon-bars")}
             show_footer=true
-            selected_page={AppRoute::Home}
+            selected_page={AppRoute::Default}
             calendar={CalendarProps::new(date_is_incomplete)}
         >
             if let Some(idx) = *add_duration_prompt_idx {

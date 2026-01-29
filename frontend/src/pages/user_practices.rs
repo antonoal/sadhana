@@ -141,10 +141,10 @@ pub fn user_practices() -> Html {
     html! {
         <BlankPage
             header_label={Locale::current().practices()}
-            left_button={HeaderButtonProps::back_to(AppRoute::Home)}
+            left_button={HeaderButtonProps::back_to(AppRoute::Default)}
             right_button={HeaderButtonProps::new_icon_redirect(AppRoute::NewUserPractice, "icon-plus")}
             show_footer=true
-            selected_page={AppRoute::Home}
+            selected_page={AppRoute::Default}
             loading={server_practices.loading}
         >
             <ListErrors error={server_practices.error.clone()} />

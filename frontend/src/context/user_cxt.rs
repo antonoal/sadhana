@@ -1,7 +1,7 @@
 use crate::{
     hooks::use_cache_aware_async,
     model::UserInfo,
-    routes::AppRoute,
+    routes::PublicRoute,
     services::{
         current,
         requests::{get_token, set_token},
@@ -41,7 +41,7 @@ pub fn user_context_provider(props: &Props) -> Html {
                 })
                 .is_none()
             {
-                navigator.push(&AppRoute::Login);
+                navigator.push(&PublicRoute::Login);
             }
         });
     }
@@ -59,7 +59,7 @@ pub fn user_context_provider(props: &Props) -> Html {
                 if let AppError::Unauthorized(_) = error {
                     set_token(None);
                 }
-                navigator.push(&AppRoute::Login);
+                navigator.push(&PublicRoute::Login);
             }
             || ()
         })

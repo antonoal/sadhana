@@ -508,9 +508,9 @@ pub fn blank_page(props: &Props) -> Html {
                             <div class="relative px-8 sm:rounded-3xl sm:px-20">
                                 <div class={MENU_CSS}>
                                     <span>
-                                        <Link<AppRoute> to={AppRoute::Home}>
+                                        <Link<AppRoute> to={AppRoute::Default}>
                                             <i
-                                                class={format!("icon-home{} {FOOTER_ICON_CSS}", selected_css(AppRoute::Home))}
+                                                class={format!("icon-home{} {FOOTER_ICON_CSS}", selected_css(AppRoute::Default))}
                                             />
                                         </Link<AppRoute>>
                                     </span>

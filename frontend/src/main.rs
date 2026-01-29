@@ -30,7 +30,7 @@ fn app() -> Html {
                 <AppUpdateContextProvider>
                     <UserContextProvider>
                         <SessionStateProvider>
-                            <Switch<BaseRoute> render={switch} />
+                            <Switch<PublicRoute> render={root_switch} />
                         </SessionStateProvider>
                     </UserContextProvider>
                 </AppUpdateContextProvider>

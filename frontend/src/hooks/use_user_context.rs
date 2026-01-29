@@ -4,7 +4,7 @@ use std::ops::Deref;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::{model::UserInfo, services::requests::set_token, AppRoute};
+use crate::{AppRoute, PublicRoute, model::UserInfo, services::requests::set_token};
 
 pub struct UseUserContextHandle {
     inner: UseStateHandle<UserInfo>,
@@ -21,7 +21,7 @@ impl UseUserContextHandle {
         set_token(Some(value.token.clone()));
         self.inner.set(value);
         // Redirect to home page
-        self.redirect_to(&AppRoute::Home);
+        self.redirect_to(&AppRoute::Default);
     }
 
     pub fn logout(&self) {
@@ -29,7 +29,7 @@ impl UseUserContextHandle {
         set_token(None);
         self.inner.set(UserInfo::default());
         // Redirect to login page
-        self.navigator.push(&AppRoute::Login);
+        self.navigator.push(&PublicRoute::Login);
     }
 }
 

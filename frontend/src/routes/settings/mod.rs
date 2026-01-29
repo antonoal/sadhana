@@ -1,7 +1,8 @@
 use crate::{
     components::blank_page::BlankPage,
+    context::AppUpdate,
     css::*,
-    hooks::{AppUpdate, use_user_context},
+    hooks::use_user_context,
     routes::{AppRoute, BaseRoute},
     tr,
 };

@@ -8,8 +8,9 @@ use yew_router::prelude::*;
 
 use super::{calendar::Calendar, month_calendar::MonthCalendar};
 use crate::{
+    context::{NetworkStatus, Session, SessionAction},
     css::*,
-    hooks::{NetworkStatus, Session, SessionAction, use_visibility},
+    hooks::use_visibility,
     i18n::Locale,
     routes::AppRoute,
     services::requests,

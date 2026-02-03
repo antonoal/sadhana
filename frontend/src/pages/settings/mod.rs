@@ -2,7 +2,7 @@ use crate::{
     components::blank_page::BlankPage,
     context::AppUpdate,
     css::*,
-    hooks::use_user_context,
+    hooks::use_user_ctx,
     routes::{AppRoute, PublicRoute},
     tr,
 };
@@ -21,7 +21,7 @@ pub mod support_form;
 
 #[function_component(Settings)]
 pub fn settings() -> Html {
-    let user_ctx = use_user_context();
+    let user_ctx = use_user_ctx();
     let nav = use_navigator().unwrap();
     let app_update = use_context::<AppUpdate>().expect("AppUpdate context not found");
 

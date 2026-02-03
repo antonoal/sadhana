@@ -22,6 +22,7 @@ pub fn user_context_provider(props: &Props) -> Html {
     let user_ctx = use_state(UserInfo::default);
     let current_user = use_cache_aware_async(current());
     let navigator = use_navigator().unwrap();
+    // TODO: replace with typesafe use_route
     let location = use_location();
 
     {

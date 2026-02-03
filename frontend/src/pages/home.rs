@@ -9,9 +9,9 @@ use yew_hooks::{use_async, use_list, use_mount};
 
 use crate::{
     components::{
+        Prompt,
         blank_page::{BlankPage, CalendarProps, HeaderButtonProps},
         list_errors::ListErrors,
-        prompt::Prompt,
     },
     context::Session,
     css::*,

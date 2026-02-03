@@ -5,17 +5,14 @@ use super::{
     graph_editor::GraphEditor, grid_editor::GridEditor,
 };
 use crate::{
-    components::{
-        blank_page::{BlankPage, CalendarProps, CtxMenuEntry, HeaderButtonProps},
-        list_errors::ListErrors,
-        share_link::{ShareLink, can_share, emit_signal_callback, set_signal_callback},
-    },
-    context::Session,
-    hooks::{use_cache_aware_async, use_user_context},
+    components::share_link::{ShareLink, can_share, emit_signal_callback, set_signal_callback},
+    context::{CtxMenuEntry, HeaderButton, Session},
+    hooks::{use_cache_aware_async, use_layout_ctx, use_user_ctx},
     i18n::Locale,
     model::ReportData,
     routes::AppRoute,
     services::{get_user_practices, report::*, requests::RequestOptions},
+    tr,
 };
 use common::ReportDuration;
 use csv::Writer;
@@ -30,12 +27,15 @@ use yew_hooks::{use_async, use_bool_toggle, use_mount};
 #[function_component(Charts)]
 pub fn charts() -> Html {
     let session_ctx = use_context::<Session>().expect("No session state found");
-    let user_ctx = use_user_context();
+    let layout = use_layout_ctx();
+    let user_ctx = use_user_ctx();
+
     let duration = use_state(|| ReportDuration::Week);
     let editing = use_bool_toggle(false);
     let active_report = use_state(|| None::<Report>);
     let share_signal = use_state(|| None::<Callback<_>>);
     let initialised = use_mut_ref(|| false);
+    let form_ref = use_node_ref();
 
     let can_share = can_share();
     let share_icon = if can_share {
@@ -100,6 +100,113 @@ pub fn charts() -> Html {
         use_mount(move || {
             all_practices.run();
         });
+    }
+
+    let edit_onclick = {
+        let editing = editing.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            editing.toggle();
+        })
+    };
+
+    let download_onclick = {
+        let duration = duration.clone();
+        let session = session_ctx.clone();
+        Callback::from(move |_: MouseEvent| {
+            let duration = duration.clone();
+            let selected_date = session.selected_date;
+            spawn_local(async move {
+                (get_report_data(&selected_date, &duration)
+                    .map(|data| {
+                        // To guarantee UTF-8 (especially for Cyrillic), prepending a UTF-8 BOM
+                        let csv = format!("\u{FEFF}{}", to_csv_str(data).unwrap_or_default());
+                        let json_jsvalue_array =
+                            js_sys::Array::from_iter(std::iter::once(JsValue::from_str(&csv)));
+                        let prop = BlobPropertyBag::new();
+                        prop.set_type("text/csv;charset=utf-8");
+
+                        let b = web_sys::Blob::new_with_str_sequence_and_options(
+                            &json_jsvalue_array,
+                            &prop,
+                        )
+                        .unwrap();
+                        let url = web_sys::Url::create_object_url_with_blob(&b).unwrap();
+                        let a = web_sys::window()
+                            .and_then(|w| w.document())
+                            .and_then(|d| d.create_element("a").ok())
+                            .and_then(|e| e.dyn_into::<HtmlElement>().ok())
+                            .unwrap();
+
+                        a.set_attribute("href", &url).unwrap();
+                        a.set_attribute("download", "data.csv").unwrap();
+                        a.set_attribute("rel", "noopener").unwrap();
+
+                        // Some Safari versions ignore .click() on detached elements hence temporarily attaching it
+                        let document = web_sys::window().unwrap().document().unwrap();
+                        document.body().unwrap().append_child(&a).unwrap();
+
+                        a.click();
+
+                        a.remove();
+                    })
+                    .send)(RequestOptions::new(true))
+                .await
+                .unwrap();
+            });
+        })
+    };
+
+    {
+        let layout = layout.clone();
+        let edit_onclick = edit_onclick.clone();
+        let share_signal = share_signal.clone();
+        let form_ref = form_ref.clone();
+        let report = active_report.clone();
+        use_effect_with(
+            (*editing, active_report.is_none()),
+            move |(editing, no_active_report)| {
+                layout.set_show_footer(!*editing);
+                layout.set_show_calendar(!*editing);
+                layout.set_title(
+                    editing
+                        .then_some(report.as_ref().map(|r| r.name.clone()).unwrap_or_default())
+                        .unwrap_or_default(),
+                );
+                let (mut l, mut r) = (vec![], vec![]);
+                if !(*editing || *no_active_report) {
+                    r.push(HeaderButton::edit(edit_onclick));
+                }
+                if *editing {
+                    l.push(HeaderButton::reset(tr!(cancel), form_ref.clone()));
+                    r.push(HeaderButton::submit(tr!(save), form_ref));
+                } else {
+                    r.push(HeaderButton::ctx_menu(
+                        "icon-ellipsis-vertical",
+                        vec![
+                            CtxMenuEntry::link(
+                                AppRoute::NewReport,
+                                "icon-plus",
+                                &tr!(report_add_new),
+                            ),
+                            CtxMenuEntry::action(
+                                download_onclick,
+                                "icon-download",
+                                &tr!(download_csv),
+                            ),
+                            CtxMenuEntry::action(
+                                emit_signal_callback(&share_signal),
+                                share_icon,
+                                &share_label,
+                            ),
+                        ],
+                    ));
+                }
+
+                layout.set_header_buttons(l, r);
+                || ()
+            },
+        );
     }
 
     {
@@ -176,61 +283,6 @@ pub fn charts() -> Html {
         })
     };
 
-    let download_onclick = {
-        let duration = duration.clone();
-        let session = session_ctx.clone();
-        Callback::from(move |_: MouseEvent| {
-            let duration = duration.clone();
-            let selected_date = session.selected_date;
-            spawn_local(async move {
-                (get_report_data(&selected_date, &duration)
-                    .map(|data| {
-                        // To guarantee UTF-8 (especially for Cyrillic), prepending a UTF-8 BOM
-                        let csv = format!("\u{FEFF}{}", to_csv_str(data).unwrap_or_default());
-                        let json_jsvalue_array =
-                            js_sys::Array::from_iter(std::iter::once(JsValue::from_str(&csv)));
-                        let prop = BlobPropertyBag::new();
-                        prop.set_type("text/csv;charset=utf-8");
-
-                        let b = web_sys::Blob::new_with_str_sequence_and_options(
-                            &json_jsvalue_array,
-                            &prop,
-                        )
-                        .unwrap();
-                        let url = web_sys::Url::create_object_url_with_blob(&b).unwrap();
-                        let a = web_sys::window()
-                            .and_then(|w| w.document())
-                            .and_then(|d| d.create_element("a").ok())
-                            .and_then(|e| e.dyn_into::<HtmlElement>().ok())
-                            .unwrap();
-
-                        a.set_attribute("href", &url).unwrap();
-                        a.set_attribute("download", "data.csv").unwrap();
-                        a.set_attribute("rel", "noopener").unwrap();
-
-                        // Some Safari versions ignore .click() on detached elements hence temporarily attaching it
-                        let document = web_sys::window().unwrap().document().unwrap();
-                        document.body().unwrap().append_child(&a).unwrap();
-
-                        a.click();
-
-                        a.remove();
-                    })
-                    .send)(RequestOptions::new(true))
-                .await
-                .unwrap();
-            });
-        })
-    };
-
-    let edit_onclick = {
-        let editing = editing.clone();
-        Callback::from(move |e: MouseEvent| {
-            e.prevent_default();
-            editing.toggle();
-        })
-    };
-
     let onreset = {
         let editing = editing.clone();
         Callback::from(move |e: Event| {
@@ -304,64 +356,29 @@ pub fn charts() -> Html {
     };
 
     html! {
-        <form {onsubmit} {onreset}>
-            <BlankPage
-                show_footer={!*editing}
-                selected_page={AppRoute::Charts}
-                calendar={CalendarProps::no_override_selected_date()}
-                loading={all_practices.loading
-                    || report_data.loading
-                    || update_report.loading
-                    || delete_report.loading}
-                left_button={if *editing {
-                        HeaderButtonProps::reset(Locale::current().cancel())
-                    } else {
-                        HeaderButtonProps::blank()
-                    }}
-                right_button2={if *editing {
-                        HeaderButtonProps::submit(Locale::current().save())
-                    } else {
-                        HeaderButtonProps::ctx_menu(
-                            "icon-ellipsis-vertical",
-                            vec![
-                                CtxMenuEntry::link(AppRoute::NewReport, "icon-plus", &Locale::current().report_add_new()),
-                                CtxMenuEntry::action(download_onclick, "icon-download", &Locale::current().download_csv()),
-                                CtxMenuEntry::action(emit_signal_callback(&share_signal), share_icon, &share_label),
-                            ]
-                        )
-                    }}
-                right_button={if *editing || active_report.is_none() {
-                        HeaderButtonProps::blank()
-                    } else {
-                        HeaderButtonProps::edit(edit_onclick)
-                    }}
-            >
-                <ListErrors error={all_practices.error.clone()} />
-                <ListErrors error={report_data.error.clone()} />
-                <ListErrors error={update_report.error.clone()} />
-                <ListErrors error={delete_report.error.clone()} />
-                if !*editing {
-                    <ShareLink
-                        relative_link={format!("/shared/{}", user_ctx.id)}
-                        run_signal={set_signal_callback(&share_signal)}
+        <form ref={form_ref.clone()} {onsubmit} {onreset}>
+            if !*editing {
+                <ShareLink
+                    relative_link={format!("/shared/{}", user_ctx.id)}
+                    run_signal={set_signal_callback(&share_signal)}
+                />
+            }
+            if let Some(report) = active_report.as_ref() {
+                if all_practices.data.is_some() {
+                    <ChartsBase
+                        practices={all_practices.data.clone().unwrap_or_default()}
+                        reports={reports.data.clone().unwrap_or_default()}
+                        report_data={report_data.data.clone().unwrap_or_default()}
+                        report={(*report).clone()}
+                        {report_onchange}
+                        {dates_onchange}
+                        editing={*editing}
                     />
                 }
-                if let Some(report) = active_report.as_ref() {
-                    if all_practices.data.is_some() {
-                        <ChartsBase
-                            practices={all_practices.data.clone().unwrap_or_default()}
-                            reports={reports.data.clone().unwrap_or_default()}
-                            report_data={report_data.data.clone().unwrap_or_default()}
-                            report={(*report).clone()}
-                            {report_onchange}
-                            {dates_onchange}
-                        />
-                    }
-                }
-                if *editing {
-                    { editor() }
-                }
-            </BlankPage>
+            }
+            if *editing {
+                { editor() }
+            }
         </form>
     }
 }

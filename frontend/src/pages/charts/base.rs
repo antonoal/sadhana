@@ -29,6 +29,8 @@ pub struct ChartBaseProps {
     pub dates_onchange: Callback<ReportDuration>,
     pub report_onchange: Callback<SelectedReportId>,
     pub report: Report,
+    #[prop_or(false)]
+    pub editing: bool,
 }
 
 const DATE_FORMAT: &str = "%Y-%m-%d";
@@ -201,13 +203,14 @@ pub fn charts_base(props: &ChartBaseProps) -> Html {
     html! {
         <div class={BODY_DIV_SPACE_10_CSS}>
             <div class={TWO_COLS_CSS}>
-                <div class="relative">
-                    <select
-                        class={tw_merge!(INPUT_CSS, "appearance-none")}
-                        id="report"
-                        onchange={report_onchange.clone()}
-                    >
-                        { for props.reports.iter().map(|r| html!{
+                if !props.editing {
+                    <div class="relative">
+                        <select
+                            class={tw_merge!(INPUT_CSS, "appearance-none")}
+                            id="report"
+                            onchange={report_onchange.clone()}
+                        >
+                            { for props.reports.iter().map(|r| html!{
                             <option class={"text-black"}
                                 selected={props.report.id == r.id}
                                 value={r.id.clone()}
@@ -215,12 +218,15 @@ pub fn charts_base(props: &ChartBaseProps) -> Html {
                                 {r.name.clone()}
                             </option>
                     }) }
-                    </select>
-                    <label for="report" class={INPUT_LABEL_CSS}>
-                        { format!(" {}: ", Locale::current().report()) }
-                    </label>
-                </div>
-                <div class="relative">
+                        </select>
+                        <label for="report" class={INPUT_LABEL_CSS}>
+                            { format!(" {}: ", Locale::current().report()) }
+                        </label>
+                    </div>
+                }
+                <div
+                    class="relative"
+                >
                     <select
                         class={tw_merge!(INPUT_CSS, "appearance-none")}
                         id="duration"

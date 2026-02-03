@@ -8,7 +8,7 @@ use crate::{
         list_errors::ListErrors,
     },
     css::*,
-    hooks::use_user_context,
+    hooks::use_user_ctx,
     i18n::*,
     model::*,
     routes::AppRoute,
@@ -19,7 +19,7 @@ use crate::{
 pub fn edit_user() -> Html {
     let user_info = use_state(UpdateUser::default);
     let editing = use_bool_toggle(false);
-    let user_ctx = use_user_context();
+    let user_ctx = use_user_ctx();
 
     {
         let user_info = user_info.clone();

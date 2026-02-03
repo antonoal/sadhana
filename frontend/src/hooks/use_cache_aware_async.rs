@@ -8,9 +8,12 @@ use uuid::Uuid;
 use wasm_bindgen::JsCast;
 use web_sys::MessageEvent;
 use yew::prelude::*;
-use yew_hooks::{UseAsyncHandle, use_async};
+use yew_hooks::UseAsyncHandle;
 
-use crate::services::requests::{GetApiRequest, RequestOptions};
+use crate::{
+    hooks::use_async_with_error,
+    services::requests::{GetApiRequest, RequestOptions},
+};
 #[derive(Deserialize)]
 struct ApiUpdatedMessage {
     #[serde(rename = "type")]
@@ -20,11 +23,11 @@ struct ApiUpdatedMessage {
 }
 
 #[derive(PartialEq)]
-pub struct UseCacheAwareAsyncApi<T> {
+pub struct UseCacheAwareAsyncHandle<T> {
     pub api: UseAsyncHandle<T, AppError>,
 }
 
-impl<T> Deref for UseCacheAwareAsyncApi<T> {
+impl<T> Deref for UseCacheAwareAsyncHandle<T> {
     type Target = UseAsyncHandle<T, AppError>;
 
     fn deref(&self) -> &Self::Target {
@@ -37,8 +40,9 @@ impl<T> Deref for UseCacheAwareAsyncApi<T> {
 /// the data from server, and if successful, sends API_UPDATE message.
 /// This hook in turn catches that message and reruns the fetcher with cache
 /// only flag set.
+/// Automatically registers errors with the Errors context.
 #[hook]
-pub fn use_cache_aware_async<T>(req: GetApiRequest<T>) -> UseCacheAwareAsyncApi<T>
+pub fn use_cache_aware_async<T>(req: GetApiRequest<T>) -> UseCacheAwareAsyncHandle<T>
 where
     T: Clone + 'static,
 {
@@ -48,7 +52,7 @@ where
     let api = {
         let refresh_mode = refresh_mode.clone();
         let hook_id = hook_id.clone();
-        use_async(async move {
+        use_async_with_error(async move {
             let opts = RequestOptions {
                 use_cache: *refresh_mode.borrow(),
                 cache_key: Some(hook_id.to_string()),
@@ -91,5 +95,5 @@ where
         });
     }
 
-    UseCacheAwareAsyncApi { api }
+    UseCacheAwareAsyncHandle { api }
 }

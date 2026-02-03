@@ -9,7 +9,7 @@ use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 use crate::{
-    context::{Session, SessionAction},
+    context::{LayoutHandle, Session, SessionAction},
     css::POPUP_BG_CSS,
     hooks::use_cache_aware_async,
     i18n::{DAYS, Locale},
@@ -27,6 +27,7 @@ const DAY_CSS: &str = "cursor-pointer text-center text-md rounded-full leading-l
 
 #[function_component(MonthCalendar)]
 pub fn month_calendar(props: &Props) -> Html {
+    let layout = use_context::<LayoutHandle>().expect("LayoutContext not found");
     let today: NaiveDate = Local::now().date_naive();
     let session_ctx = use_context::<Session>().expect("No session state ctx found");
     let month_start = use_state(|| {
@@ -62,7 +63,7 @@ pub fn month_calendar(props: &Props) -> Html {
         format!("{DAY_CSS} {color_css}")
     };
 
-    let incomplete_days = use_cache_aware_async(if props.highlight_incomplete_dates {
+    let incomplete_days = use_cache_aware_async(if layout.calendar.highlight_incomplete {
         let month_start = month_start.clone();
         let end = next_month_start.pred_opt().unwrap();
         get_incomplete_days(&month_start, &end)

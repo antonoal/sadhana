@@ -3,12 +3,14 @@ use yew_hooks::use_window_size;
 use yew_router::prelude::*;
 
 use crate::pages::{
+    Input,
     charts::{Charts, SharedCharts, create_report::CreateReport},
     confirmation::Confirmation,
-    home::Home,
     login::Login,
-    practices::edit_yatra_practice::EditYatraPractice,
-    practices::{Mode, edit_user_practice::EditUserPractice, new_practice::NewPractice},
+    practices::{
+        Mode, edit_user_practice::EditUserPractice, edit_yatra_practice::EditYatraPractice,
+        new_practice::NewPractice,
+    },
     pwd_reset::PwdReset,
     register_with_id::RegisterWithId,
     settings::{
@@ -43,7 +45,7 @@ pub enum PublicRoute {
 }
 
 /// Routes that depend on user context being loaded
-#[derive(Clone, Routable, PartialEq)]
+#[derive(Clone, Debug, Routable, PartialEq)]
 pub enum AppRoute {
     #[at("/")]
     Default,
@@ -88,11 +90,11 @@ pub enum AppRoute {
     NotFound,
 }
 
-fn app_switch(route: AppRoute, single_pane_layout: bool) -> Html {
+fn app_switch(route: AppRoute, single_pane: bool) -> Html {
     match route {
         AppRoute::Default => html! {
-            if single_pane_layout {
-                <Home />
+            if single_pane {
+                <Input />
             } else {
                 <Charts />
             }
@@ -129,7 +131,7 @@ fn app_switch(route: AppRoute, single_pane_layout: bool) -> Html {
     }
 }
 
-pub fn root_switch(route: PublicRoute) -> Html {
+pub fn root_switch(route: PublicRoute, single_pane: bool) -> Html {
     match route {
         PublicRoute::PasswordReset => {
             html! { <Confirmation confirmation_type={ConfirmationType::PasswordReset} /> }
@@ -143,23 +145,23 @@ pub fn root_switch(route: PublicRoute) -> Html {
         PublicRoute::SharedCharts { id } => html! { <SharedCharts share_id={id} /> },
         PublicRoute::Help => html! { <Help /> },
         PublicRoute::Default | PublicRoute::AppRoute => {
-            html! { <AppLayout /> }
+            html! { <Switch<AppRoute> render={move |r| app_switch(r, single_pane)} /> }
         }
     }
 }
 
 #[function_component(AppLayout)]
-fn app_layout() -> Html {
-    let window = use_window_size();
+pub fn app_layout() -> Html {
+    let (width, _) = use_window_size();
 
     html! {
-        if window.0 >= 1024.0 {
+        if width >= 1024.0 {
             <TwoPane>
-                <Switch<AppRoute> render={|route| app_switch(route, false)} />
+                <Switch<PublicRoute> render={|route| root_switch(route, false)} />
             </TwoPane>
         } else {
             <SinglePane>
-                <Switch<AppRoute> render={|route| app_switch(route, true)} />
+                <Switch<PublicRoute> render={|route| root_switch(route, true)} />
             </SinglePane>
         }
     }

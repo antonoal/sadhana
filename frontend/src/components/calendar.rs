@@ -7,12 +7,13 @@ use yew::prelude::*;
 use yew_hooks::use_mount;
 
 use crate::{
-    context::{Session, SessionAction},
+    context::{LayoutHandle, Session, SessionAction},
     hooks::use_cache_aware_async,
     i18n::Locale,
     services::{get_incomplete_days, requests::GetApiRequest},
 };
 
+// TODO: deprecated; Remove
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     #[prop_or(false)]
@@ -41,6 +42,7 @@ pub fn calendar(props: &Props) -> Html {
     let touch_start = use_mut_ref(|| None::<(i32, i32)>);
     let translate_x = use_state(|| 0);
     let is_animating = use_state(|| false);
+    let layout = use_context::<LayoutHandle>().expect("LayoutContext not found");
 
     let week = {
         let d = session.selected_date.week(Weekday::Mon).first_day();
@@ -62,7 +64,7 @@ pub fn calendar(props: &Props) -> Html {
     );
 
     let incomplete_days = {
-        use_cache_aware_async(if props.highlight_incomplete_dates {
+        use_cache_aware_async(if layout.calendar.highlight_incomplete {
             get_incomplete_days(&prev_week_day, &next_week_day)
                 .map(|res| res.days.iter().map(|d| d.day()).collect::<HashSet<_>>())
         } else {
@@ -72,7 +74,7 @@ pub fn calendar(props: &Props) -> Html {
 
     {
         let incomplete_days = incomplete_days.clone();
-        let should_run = props.highlight_incomplete_dates;
+        let should_run = layout.calendar.highlight_incomplete;
         use_mount(move || {
             if should_run {
                 incomplete_days.run();
@@ -91,8 +93,8 @@ pub fn calendar(props: &Props) -> Html {
     let is_incomplete_day = |day| {
         // For the selected day we receive incompleteness in props
         if incomplete_days.data.is_some() && session.selected_date.day() == day {
-            if let Some(selected_date_incomplete) = props.selected_date_incomplete.as_ref() {
-                return *selected_date_incomplete;
+            if let Some(incomplete) = layout.calendar.selected_day_incomplete.as_ref() {
+                return *incomplete;
             }
         }
         // For the rest we load from the backend

@@ -65,7 +65,7 @@ impl fmt::Debug for UseUserContextHandle {
 }
 
 #[hook]
-pub fn use_user_context() -> UseUserContextHandle {
+pub fn use_user_ctx() -> UseUserContextHandle {
     let inner = use_context().unwrap();
     let navigator = use_navigator().unwrap();
 

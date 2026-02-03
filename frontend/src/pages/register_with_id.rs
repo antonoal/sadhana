@@ -7,7 +7,7 @@ use yew_router::prelude::*;
 use crate::{
     components::{blank_page::BlankPage, list_errors::ListErrors, pwd::Pwd},
     css::*,
-    hooks::use_user_context,
+    hooks::use_user_ctx,
     i18n::Locale,
     model::{RegisterInfo, RegisterInfoWrapper},
     routes::PublicRoute,
@@ -22,7 +22,7 @@ pub struct Props {
 
 #[function_component(RegisterWithId)]
 pub fn register_with_id(props: &Props) -> Html {
-    let user_ctx = use_user_context();
+    let user_ctx = use_user_ctx();
     let register_info = use_state(|| RegisterInfo {
         lang: Locale::current().to_string(),
         confirmation_id: props.id.to_string(),

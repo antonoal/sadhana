@@ -4,9 +4,8 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use context::{
-    AppUpdateContextProvider, NetworkStatusProvider, SessionStateProvider, UserContextProvider,
-};
+use components::{Background, LoadingOverlay};
+use context::*;
 use routes::*;
 
 mod components;
@@ -26,15 +25,23 @@ mod web_sys_ext;
 fn app() -> Html {
     html! {
         <BrowserRouter>
-            <NetworkStatusProvider>
-                <AppUpdateContextProvider>
-                    <UserContextProvider>
-                        <SessionStateProvider>
-                            <Switch<PublicRoute> render={root_switch} />
-                        </SessionStateProvider>
-                    </UserContextProvider>
-                </AppUpdateContextProvider>
-            </NetworkStatusProvider>
+            <Background />
+            <LoadingContextProvider>
+                <LoadingOverlay />
+                <NetworkStatusProvider>
+                    <AppUpdateContextProvider>
+                        <ErrorContextProvider>
+                            <UserContextProvider>
+                                <SessionStateProvider>
+                                    <LayoutStateProvider>
+                                        <AppLayout />
+                                    </LayoutStateProvider>
+                                </SessionStateProvider>
+                            </UserContextProvider>
+                        </ErrorContextProvider>
+                    </AppUpdateContextProvider>
+                </NetworkStatusProvider>
+            </LoadingContextProvider>
         </BrowserRouter>
     }
 }

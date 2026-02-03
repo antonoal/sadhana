@@ -8,6 +8,12 @@ pub struct SessionState {
     pub today: NaiveDate,
 }
 
+impl SessionState {
+    pub fn today_selected(&self) -> bool {
+        self.today == self.selected_date
+    }
+}
+
 pub enum SessionAction {
     UpdateToday,
     SetSelected(NaiveDate),
@@ -40,13 +46,6 @@ impl Reducible for SessionState {
 }
 
 pub type Session = UseReducerHandle<SessionState>;
-
-impl SessionState {
-    pub fn today_selected(&self) -> bool {
-        self.today == self.selected_date
-    }
-}
-
 #[derive(Properties, Debug, PartialEq)]
 pub struct SessionStateProviderProps {
     #[prop_or_default]

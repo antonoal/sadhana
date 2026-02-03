@@ -64,4 +64,5 @@ features = [
   "ServiceWorker",
   "ServiceWorkerContainer",
   "ServiceWorkerRegistration",
+  "HtmlFormElement",
 ]

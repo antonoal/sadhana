@@ -18,8 +18,8 @@ use yew_router::prelude::use_navigator;
 
 use crate::{
     components::{
+        DATE_FORMAT,
         blank_page::{BlankPage, HeaderButtonProps},
-        calendar::DATE_FORMAT,
         list_errors::ListErrors,
     },
     css::*,

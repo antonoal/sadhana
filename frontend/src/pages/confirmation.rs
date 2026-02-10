@@ -1,16 +1,10 @@
-use crate::{
-    css::*,
-    hooks::{use_errors_ctx, use_layout_ctx},
-    model::ConfirmationType,
-    tr,
-};
-use common::error::AppError;
+use crate::{css::*, hooks::use_layout_ctx, model::ConfirmationType, tr};
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 use yew_hooks::prelude::*;
 use yew_router::prelude::*;
 
-use crate::{PublicRoute, i18n::*, model::SendConfirmationLink, services};
+use crate::{PublicRoute, model::SendConfirmationLink, services};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -20,28 +14,9 @@ pub struct Props {
 #[function_component(Confirmation)]
 pub fn confirmation(props: &Props) -> Html {
     let layout = use_layout_ctx();
-    let errors = use_errors_ctx();
 
     let signup_email = use_state(|| "".to_string());
     let email_sent = use_bool_toggle(false);
-
-    let error_formatter = {
-        let email = signup_email.clone();
-        let confirm_type = props.confirmation_type.clone();
-        Callback::from(move |err| match err {
-            AppError::UnprocessableEntity(err)
-                if err.iter().any(|s| s.ends_with("already exists.")) =>
-            {
-                Some(match confirm_type {
-                    ConfirmationType::Registration => {
-                        tr!(user_already_exists, Email(&email))
-                    }
-                    ConfirmationType::PasswordReset => unreachable!(),
-                })
-            }
-            _ => None,
-        })
-    };
 
     let (header_label, email_sent_label, submit_label) = match props.confirmation_type {
         ConfirmationType::PasswordReset => (tr!(password_reset), tr!(reset_email_sent), tr!(reset)),
@@ -50,11 +25,8 @@ pub fn confirmation(props: &Props) -> Html {
 
     {
         let layout = layout.clone();
-        let errors = errors.clone();
-        let fmt = error_formatter.clone();
         use_mount(move || {
             layout.set_pub_route_back_button_layout(header_label);
-            errors.set_formatter(fmt);
         });
     }
 

@@ -8,12 +8,11 @@ use crate::routes::{AppRoute, PublicRoute};
 #[derive(Clone, Default, PartialEq)]
 pub struct ErrorsState {
     pub errors: HashSet<AppError>,
-    pub formatter: Option<Callback<AppError, Option<String>>>,
 }
 
 pub enum ErrorsAction {
     Push(AppError),
-    SetFormatter(Callback<AppError, Option<String>>),
+    Remove(AppError),
     Reset,
 }
 
@@ -27,7 +26,9 @@ impl Reducible for ErrorsState {
             ErrorsAction::Push(error) => {
                 new.errors.insert(error);
             }
-            ErrorsAction::SetFormatter(fmt) => new.formatter = Some(fmt),
+            ErrorsAction::Remove(error) => {
+                new.errors.remove(&error);
+            }
             ErrorsAction::Reset => new = Self::default(),
         }
 
@@ -39,7 +40,6 @@ pub type ErrorsHandle = UseReducerHandle<ErrorsState>;
 
 #[function_component(ErrorContextProvider)]
 pub fn errors_context_provider(props: &ChildrenProps) -> Html {
-    // TODO: When an error is added to this context,  errors on timeout or on user action or in the hook when error is no longer present?
     let errors = use_reducer(ErrorsState::default);
     let public_route = use_route::<PublicRoute>();
     let app_route = use_route::<AppRoute>();

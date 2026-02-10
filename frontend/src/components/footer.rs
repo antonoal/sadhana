@@ -25,7 +25,7 @@ pub fn footer() -> Html {
                     <div class="relative px-8 sm:rounded-3xl sm:px-20">
                         <div class={MENU_CSS}>
                             { for FOOTER_ITEMS.iter().map(|(path, icon_css)| {
-                                let icon_css = if route == *path {
+                                let icon_css = if route == *path || route.is_child_of(path) {
                                     format!("{}-solid !text-amber-500", icon_css)
                                 } else {
                                     icon_css.to_string()

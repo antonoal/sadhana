@@ -38,7 +38,6 @@ pub fn single_pane(props: &Props) -> Html {
         .into_iter()
         .chain(layout.left_buttons.clone().into_iter())
         .collect::<Vec<_>>();
-    log::debug!("Constructing SinglePane layout");
 
     html! {
         <>

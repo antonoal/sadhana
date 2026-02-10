@@ -2,7 +2,6 @@ use std::rc::Rc;
 use strum::Display;
 use web_sys::HtmlFormElement;
 use yew::{html::ChildrenProps, html::onclick::Event, prelude::*};
-use yew_hooks::use_location;
 
 use crate::{routes::AppRoute, tr};
 
@@ -112,9 +111,9 @@ impl HeaderButton {
         Self::new_redirect(tr!(done), redirect_to, None, ButtonType::Button)
     }
 
-    pub fn submit<S: Into<String>>(label: S, form_ref: NodeRef) -> Self {
+    pub fn submit(form_ref: NodeRef) -> Self {
         Self::new_cb(
-            label,
+            tr! {save},
             Callback::from(move |_| {
                 if let Some(form) = form_ref.cast::<HtmlFormElement>() {
                     let _ = form.request_submit();
@@ -125,9 +124,9 @@ impl HeaderButton {
         )
     }
 
-    pub fn reset<S: Into<String>>(label: S, form_ref: NodeRef) -> Self {
+    pub fn reset(form_ref: NodeRef) -> Self {
         Self::new_cb(
-            label.into(),
+            tr!(cancel),
             Callback::from(move |_| {
                 if let Some(form) = form_ref.cast::<HtmlFormElement>() {
                     form.reset();
@@ -175,7 +174,7 @@ impl HeaderButton {
 }
 
 /// Calendar layout settings
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct CalendarState {
     pub show: bool,
     /// Overrides incompleteness of the selected day.
@@ -183,6 +182,27 @@ pub struct CalendarState {
     /// when the day becomes complete on the Input page.
     pub selected_day_incomplete: Option<bool>,
     pub highlight_incomplete: bool,
+}
+
+impl CalendarState {
+    pub fn new(
+        show: bool,
+        selected_day_incomplete: Option<bool>,
+        highlight_incomplete: bool,
+    ) -> Self {
+        Self {
+            show,
+            selected_day_incomplete,
+            highlight_incomplete,
+        }
+    }
+
+    pub fn disabled() -> Self {
+        Self {
+            show: false,
+            ..Default::default()
+        }
+    }
 }
 
 impl Default for CalendarState {
@@ -195,13 +215,70 @@ impl Default for CalendarState {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct LayoutState {
     pub title: Option<String>,
     pub show_footer: bool,
     pub calendar: CalendarState,
     pub left_buttons: Vec<HeaderButton>,
     pub right_buttons: Vec<HeaderButton>,
+}
+
+impl LayoutState {
+    pub fn builder() -> LayoutStateBuilder {
+        LayoutStateBuilder::default()
+    }
+}
+
+#[derive(Default)]
+pub struct LayoutStateBuilder {
+    title: Option<String>,
+    show_footer: bool,
+    calendar: CalendarState,
+    left_buttons: Vec<HeaderButton>,
+    right_buttons: Vec<HeaderButton>,
+}
+
+impl LayoutStateBuilder {
+    pub fn title<S: Into<String>>(mut self, title: S) -> Self {
+        self.title = Some(title.into());
+        self
+    }
+
+    pub fn title_opt(mut self, title: Option<String>) -> Self {
+        self.title = title;
+        self
+    }
+
+    pub fn show_footer(mut self, show: bool) -> Self {
+        self.show_footer = show;
+        self
+    }
+
+    pub fn calendar(mut self, calendar: CalendarState) -> Self {
+        self.calendar = calendar;
+        self
+    }
+
+    pub fn left_buttons(mut self, buttons: Vec<HeaderButton>) -> Self {
+        self.left_buttons = buttons;
+        self
+    }
+
+    pub fn right_buttons(mut self, buttons: Vec<HeaderButton>) -> Self {
+        self.right_buttons = buttons;
+        self
+    }
+
+    pub fn build(self) -> LayoutState {
+        LayoutState {
+            title: self.title,
+            show_footer: self.show_footer,
+            calendar: self.calendar,
+            left_buttons: self.left_buttons,
+            right_buttons: self.right_buttons,
+        }
+    }
 }
 
 impl Default for LayoutState {
@@ -218,6 +295,7 @@ impl Default for LayoutState {
 
 #[derive(Debug)]
 pub enum LayoutAction {
+    SetLayout(LayoutState),
     SetTitle(String),
     SetShowFooter(bool),
     SetShowCalendar(bool),
@@ -232,8 +310,10 @@ impl Reducible for LayoutState {
 
     fn reduce(self: Rc<Self>, action: Self::Action) -> Rc<Self> {
         let mut new = (*self).clone();
+        log::debug!("Running {:?} layout action", action);
 
         match action {
+            LayoutAction::SetLayout(l) => new = l,
             LayoutAction::SetTitle(t) => new.title = (!t.is_empty()).then_some(t),
             LayoutAction::SetShowCalendar(v) => {
                 new.calendar = CalendarState {
@@ -270,21 +350,6 @@ pub type LayoutHandle = UseReducerHandle<LayoutState>;
 #[function_component(LayoutStateProvider)]
 pub fn layout_state_provider(props: &ChildrenProps) -> Html {
     let layout = use_reducer(LayoutState::default);
-    let loc = use_location();
-    let pathname = loc.pathname.clone();
-    let prev_path = use_mut_ref(|| pathname.clone());
-
-    {
-        let layout = layout.clone();
-        let prev_path = prev_path.clone();
-        use_effect_with(pathname, move |path| {
-            if *prev_path.borrow() != *path {
-                layout.dispatch(LayoutAction::Reset);
-                *prev_path.borrow_mut() = path.clone();
-            }
-            || ()
-        });
-    }
 
     html! {
         <ContextProvider<LayoutHandle> context={layout}>

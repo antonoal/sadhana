@@ -4,6 +4,8 @@ use dotenvy::dotenv;
 #[cfg(not(target_env = "msvc"))]
 use jemallocator::Jemalloc;
 
+use crate::middleware::state::AppState;
+
 #[macro_use]
 extern crate log;
 
@@ -32,7 +34,7 @@ async fn main() -> std::io::Result<()> {
     let pool = utils::db::establish_connection();
 
     HttpServer::new(move || {
-        let app_state = middleware::state::AppState::init(pool.clone());
+        let app_state = AppState::init(pool.clone());
 
         app_state
             .get_conn()

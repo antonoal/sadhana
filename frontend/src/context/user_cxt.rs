@@ -22,8 +22,7 @@ pub fn user_context_provider(props: &Props) -> Html {
     let user_ctx = use_state(UserInfo::default);
     let current_user = use_cache_aware_async(current());
     let navigator = use_navigator().unwrap();
-    // TODO: replace with typesafe use_route
-    let location = use_location();
+    let route = use_route::<PublicRoute>().unwrap();
 
     {
         /* On startup check if the user is already logged in from local storage. */
@@ -33,14 +32,13 @@ pub fn user_context_provider(props: &Props) -> Html {
             if get_token().is_some() {
                 log::debug!("Fetching current user info");
                 current_user.run();
-            } else if location
-                .filter(|l| {
-                    l.path().starts_with("/register")
-                        || l.path().starts_with("/login")
-                        || l.path().starts_with("/reset")
-                        || l.path().starts_with("/shared")
-                })
-                .is_none()
+            } else if !([
+                PublicRoute::Login,
+                PublicRoute::Register,
+                PublicRoute::PasswordReset,
+            ]
+            .contains(&route)
+                || matches!(route, PublicRoute::SharedCharts { id: _ }))
             {
                 navigator.push(&PublicRoute::Login);
             }

@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+use common::error::AppError;
 use yew::prelude::*;
 
 use crate::context::{ErrorsAction, ErrorsHandle};
@@ -10,10 +11,10 @@ pub struct UseErrorsContextHandle {
 }
 
 impl UseErrorsContextHandle {
-    pub fn push_error(&self, error: common::error::AppError) {
+    pub fn push_error(&self, error: AppError) {
         self.inner.dispatch(ErrorsAction::Push(error));
     }
-    pub fn set_formatter(&self, fmt: Callback<common::error::AppError, Option<String>>) {
+    pub fn set_formatter(&self, fmt: Callback<AppError, Option<String>>) {
         self.inner.dispatch(ErrorsAction::SetFormatter(fmt));
     }
     pub fn reset(&self) {

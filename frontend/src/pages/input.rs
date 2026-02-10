@@ -72,13 +72,10 @@ pub fn input() -> Html {
         let layout = layout.clone();
         let required_practices = required_practices.clone();
         use_mount(move || {
-            layout.set_header_buttons(
-                vec![],
-                vec![HeaderButton::new_icon_redirect(
-                    AppRoute::UserPractices,
-                    "icon-bars",
-                )],
-            );
+            layout.set_app_layout(vec![HeaderButton::new_icon_redirect(
+                AppRoute::UserPractices,
+                "icon-bars",
+            )]);
             layout.highlight_incomplete();
             required_practices.run();
         });

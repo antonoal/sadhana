@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use yew::prelude::*;
 
-use crate::context::{HeaderButton, LayoutAction, LayoutHandle};
+use crate::context::{CalendarState, HeaderButton, LayoutAction, LayoutHandle, LayoutState};
 
 #[derive(Clone)]
 pub struct UseLayoutContextHandle {
@@ -10,6 +10,63 @@ pub struct UseLayoutContextHandle {
 }
 
 impl UseLayoutContextHandle {
+    pub fn set_login_layout(&self, title: String) {
+        let state = LayoutState::builder()
+            .calendar(CalendarState::disabled())
+            .show_footer(false)
+            .title(title)
+            .build();
+        self.inner.dispatch(LayoutAction::SetLayout(state));
+    }
+    pub fn set_pub_route_back_button_layout(&self, title: String) {
+        let state = LayoutState::builder()
+            .calendar(CalendarState::disabled())
+            .show_footer(false)
+            .left_buttons(vec![HeaderButton::back()])
+            .title(title)
+            .build();
+        self.inner.dispatch(LayoutAction::SetLayout(state));
+    }
+    pub fn set_app_service_layout(&self, show_footer: bool, title: Option<String>) {
+        let state = LayoutState::builder()
+            .calendar(CalendarState::disabled())
+            .show_footer(show_footer)
+            .left_buttons(vec![HeaderButton::back()])
+            .title_opt(title)
+            .build();
+        self.inner.dispatch(LayoutAction::SetLayout(state));
+    }
+    pub fn set_app_service_edit_layout(
+        &self,
+        editing: bool,
+        title: String,
+        form_node_ref: NodeRef,
+        edit_onclick: Callback<MouseEvent>,
+    ) {
+        let (l, r) = if editing {
+            (
+                HeaderButton::reset(form_node_ref.clone()),
+                HeaderButton::submit(form_node_ref),
+            )
+        } else {
+            (HeaderButton::back(), HeaderButton::edit(edit_onclick))
+        };
+        let state = LayoutState::builder()
+            .calendar(CalendarState::disabled())
+            .left_buttons(vec![l])
+            .right_buttons(vec![r])
+            .show_footer(!editing)
+            .title(title)
+            .build();
+        self.inner.dispatch(LayoutAction::SetLayout(state));
+    }
+    pub fn set_app_layout(&self, right_buttons: Vec<HeaderButton>) {
+        let state: LayoutState = LayoutState::builder()
+            .show_footer(true)
+            .right_buttons(right_buttons)
+            .build();
+        self.inner.dispatch(LayoutAction::SetLayout(state));
+    }
     pub fn set_title(&self, t: String) {
         self.inner.dispatch(LayoutAction::SetTitle(t));
     }

@@ -23,7 +23,7 @@ use validator::ValidationErrors;
 
 use thiserror::Error as ThisError;
 
-#[derive(ThisError, Clone, Debug, PartialEq)]
+#[derive(ThisError, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum AppError {
     /// 401
     #[error("Unauthorized: {}", _0)]

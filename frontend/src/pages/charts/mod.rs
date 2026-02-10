@@ -33,7 +33,6 @@ impl Default for PracticeTrace {
         }
     }
 }
-//TODO: ensure it will work if practice is renamed/deleted
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct ReportForm {

@@ -44,9 +44,7 @@ pub fn login() -> Html {
         let errors = errors.clone();
         let fmt = error_formatter.clone();
         use_mount(move || {
-            layout.hide_calendar();
-            layout.hide_footer();
-            layout.set_title(tr!(login));
+            layout.set_login_layout(tr!(login));
             errors.set_formatter(fmt);
         });
     }

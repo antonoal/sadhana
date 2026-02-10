@@ -14,11 +14,8 @@ impl UseErrorsContextHandle {
     pub fn push_error(&self, error: AppError) {
         self.inner.dispatch(ErrorsAction::Push(error));
     }
-    pub fn set_formatter(&self, fmt: Callback<AppError, Option<String>>) {
-        self.inner.dispatch(ErrorsAction::SetFormatter(fmt));
-    }
-    pub fn reset(&self) {
-        self.inner.dispatch(ErrorsAction::Reset);
+    pub fn remove_error(&self, error: AppError) {
+        self.inner.dispatch(ErrorsAction::Remove(error));
     }
 }
 

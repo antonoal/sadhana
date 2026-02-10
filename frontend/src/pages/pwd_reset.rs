@@ -1,13 +1,12 @@
 use crate::{
     components::pwd::Pwd,
     css::*,
-    hooks::{use_errors_ctx, use_layout_ctx},
+    hooks::use_layout_ctx,
     model,
     routes::PublicRoute,
     services::{get_signup_link_details, reset_pwd},
     tr,
 };
-use common::error::AppError;
 use gloo_dialogs::alert;
 use yew::prelude::*;
 use yew_hooks::{use_async, use_bool_toggle, use_mount};
@@ -22,7 +21,6 @@ pub struct Props {
 #[function_component(PwdReset)]
 pub fn pwd_reset(props: &Props) -> Html {
     let layout = use_layout_ctx();
-    let errors = use_errors_ctx();
     let pwd = use_state(String::default);
 
     let pwd_onchange = {
@@ -37,21 +35,11 @@ pub fn pwd_reset(props: &Props) -> Html {
         use_async(async move { get_signup_link_details(confirmation_id.as_str()).await })
     };
 
-    let error_formatter = {
-        Callback::from(move |err| match err {
-            AppError::NotFound => Some(tr!(invalid_reset_link)),
-            _ => None,
-        })
-    };
-
     {
         let email = email.clone();
         let layout = layout.clone();
-        let fmt = error_formatter.clone();
-        let errors = errors.clone();
         use_mount(move || {
             layout.set_pub_route_back_button_layout(tr!(password_reset));
-            errors.set_formatter(fmt);
             email.run();
         });
     }

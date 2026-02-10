@@ -1,46 +1,59 @@
-use crate::{hooks::use_errors_ctx, tr};
+use crate::{hooks::use_errors_ctx, routes::PublicRoute, tr};
 use common::error::AppError;
 use yew::prelude::*;
+use yew_router::prelude::*;
 
 #[function_component(ErrorsBanner)]
 pub fn errors_banner() -> Html {
     let errors = use_errors_ctx();
-
-    let error_msgs = move || {
-        errors
-            .errors
-            .iter()
-            .flat_map(|err| {
-                errors
-                    .formatter
-                    .as_ref()
-                    .and_then(|fmt| fmt.emit(err.clone()))
-                    .map(|s| vec![s])
-                    .unwrap_or(default(err))
-            })
-            .collect::<Vec<_>>()
-    };
+    let pub_route = use_route::<PublicRoute>();
 
     html! {
-        { for error_msgs().into_iter().map(|msg| {
-            html! {
+        { for errors.errors.iter().flat_map(|err| {
+            let on_close = {
+                let errors = errors.clone();
+                let err = err.clone();
+                Callback::from(move |_| {
+                    errors.remove_error(err.clone());
+                })
+            };
+            fmt(err, pub_route.as_ref()).into_iter().map(move |msg| html! {
                 <div
                     class="relative rounded-md border py-2 px-2 bg-red-900 bg-opacity-30 border-red-900"
                     role="alert"
                 >
+                    <button
+                        type="button"
+                        class="absolute right-2 top-2 text-sm text-gray dark:text-zinc-100"
+                        onclick={on_close.clone()}
+                    >
+                        { "X" }
+                    </button>
                     <p class="text-gray dark:text-zinc-100 left-2">{ msg }</p>
                 </div>
-            }
+            })
         }) }
     }
 }
 
-fn default(error: &AppError) -> Vec<String> {
+fn fmt(error: &AppError, pub_route: Option<&PublicRoute>) -> Vec<String> {
     match error {
-        AppError::UnprocessableEntity(error_info) => error_info.to_owned(),
-        // AppError::RequestError => vec![tr!("err-request_error")],
-        // AppError::InternalServerError => vec![tr!("err-internal_error")],
-        // AppError::Unauthorized(_) => vec![tr!("err-unauthorized")], // TODO: nav.push(&AppRoute::Login); ??
-        _ => vec![error.to_string()],
+        AppError::NotFound => {
+            let msg = match pub_route {
+                Some(PublicRoute::Login) => tr!(login_not_found),
+                Some(PublicRoute::PasswordReset) => tr!(invalid_reset_link),
+                _ => tr!(err_not_found),
+            };
+            vec![msg]
+        }
+        AppError::UnprocessableEntity(err) => match pub_route {
+            Some(PublicRoute::Register) => vec![tr!(user_already_exists)],
+            _ => err.clone(),
+        },
+        AppError::Unauthorized(_) => vec![tr!(unauthorized_error)],
+        AppError::Forbidden(_) => vec![tr!(internal_server_error)],
+        AppError::InternalServerError => vec![tr!(internal_server_error)],
+        AppError::DeserializeError => vec![tr!(internal_server_error)],
+        AppError::RequestError => vec![tr!(request_error)],
     }
 }

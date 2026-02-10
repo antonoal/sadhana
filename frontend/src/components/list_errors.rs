@@ -23,7 +23,7 @@ fn default(error: &AppError, nav: Navigator) -> Html {
         AppError::InternalServerError => p(Locale::current().internal_server_error()),
         AppError::Unauthorized(_) => {
             nav.push(&PublicRoute::Login);
-            p(Locale::current().unauthorized())
+            p(Locale::current().unauthorized_error())
         }
         _ => p(error),
     }

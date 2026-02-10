@@ -1,4 +1,3 @@
-use common::error::AppError;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 use yew_hooks::{use_bool_toggle, use_mount};
@@ -7,8 +6,7 @@ use yew_router::prelude::*;
 use crate::{
     PublicRoute,
     css::*,
-    hooks::{use_async_with_error, use_errors_ctx, use_layout_ctx, use_user_ctx},
-    i18n::*,
+    hooks::{use_async_with_error, use_layout_ctx, use_user_ctx},
     model::*,
     services, tr,
 };
@@ -16,7 +14,6 @@ use crate::{
 #[function_component(Login)]
 pub fn login() -> Html {
     let layout = use_layout_ctx();
-    let errors = use_errors_ctx();
     let user_ctx = use_user_ctx();
     let login_info = use_state(LoginInfo::default);
     let show_pwd = use_bool_toggle(false);
@@ -31,21 +28,10 @@ pub fn login() -> Html {
         })
     };
 
-    let error_formatter = {
-        let login_info = login_info.clone();
-        Callback::from(move |err| match err {
-            AppError::NotFound => Some(tr!(login_not_found, Email(&login_info.email))),
-            _ => None,
-        })
-    };
-
     {
         let layout = layout.clone();
-        let errors = errors.clone();
-        let fmt = error_formatter.clone();
         use_mount(move || {
             layout.set_login_layout(tr!(login));
-            errors.set_formatter(fmt);
         });
     }
 

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     model::ReportData,
-    pages::charts::{Report, ReportForm},
+    pages::{Report, ReportForm},
 };
 
 use super::requests::*;

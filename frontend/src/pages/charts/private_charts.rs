@@ -178,8 +178,8 @@ pub fn charts() -> Html {
                     r.push(HeaderButton::edit(edit_onclick));
                 }
                 if *editing {
-                    l.push(HeaderButton::reset(tr!(cancel), form_ref.clone()));
-                    r.push(HeaderButton::submit(tr!(save), form_ref));
+                    l.push(HeaderButton::reset(form_ref.clone()));
+                    r.push(HeaderButton::submit(form_ref));
                 } else {
                     r.push(HeaderButton::ctx_menu(
                         "icon-ellipsis-vertical",

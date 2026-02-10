@@ -3,9 +3,8 @@ use yew_hooks::use_window_size;
 use yew_router::prelude::*;
 
 use crate::pages::{
-    Input,
-    charts::{Charts, SharedCharts, create_report::CreateReport},
-    confirmation::Confirmation,
+    Charts, Confirmation, Input, SharedCharts,
+    create_report::CreateReport,
     login::Login,
     practices::{
         Mode, edit_user_practice::EditUserPractice, edit_yatra_practice::EditYatraPractice,
@@ -61,6 +60,8 @@ pub enum AppRoute {
     Import,
     #[at("/settings/language")]
     Language,
+    #[at("/settings/help")]
+    Help,
     #[at("/user/practices")]
     UserPractices,
     #[at("/user/practice/new")]
@@ -90,6 +91,20 @@ pub enum AppRoute {
     NotFound,
 }
 
+impl AppRoute {
+    pub fn is_child_of(&self, parent: &AppRoute) -> bool {
+        matches!(
+            (parent, self),
+            (AppRoute::Settings, AppRoute::EditUser)
+                | (AppRoute::Settings, AppRoute::EditPassword)
+                | (AppRoute::Settings, AppRoute::SupportForm)
+                | (AppRoute::Settings, AppRoute::Import)
+                | (AppRoute::Settings, AppRoute::Language)
+                | (AppRoute::Settings, AppRoute::Help)
+        )
+    }
+}
+
 fn app_switch(route: AppRoute, single_pane: bool) -> Html {
     match route {
         AppRoute::Default => html! {
@@ -105,6 +120,7 @@ fn app_switch(route: AppRoute, single_pane: bool) -> Html {
         AppRoute::SupportForm => html! { <SupportForm /> },
         AppRoute::Import => html! { <Import /> },
         AppRoute::Language => html! { <Language /> },
+        AppRoute::Help => html! { <Help /> },
         AppRoute::UserPractices => html! { <UserPractices /> },
         AppRoute::NewUserPractice => {
             html! { <NewPractice mode={Mode::UserPractice} /> }

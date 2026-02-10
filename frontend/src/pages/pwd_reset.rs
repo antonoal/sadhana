@@ -1,14 +1,11 @@
 use crate::{
-    components::{
-        blank_page::{BlankPage, HeaderButtonProps},
-        list_errors::ListErrors,
-        pwd::Pwd,
-    },
+    components::pwd::Pwd,
     css::*,
-    i18n::Locale,
+    hooks::{use_errors_ctx, use_layout_ctx},
     model,
     routes::PublicRoute,
     services::{get_signup_link_details, reset_pwd},
+    tr,
 };
 use common::error::AppError;
 use gloo_dialogs::alert;
@@ -24,6 +21,8 @@ pub struct Props {
 
 #[function_component(PwdReset)]
 pub fn pwd_reset(props: &Props) -> Html {
+    let layout = use_layout_ctx();
+    let errors = use_errors_ctx();
     let pwd = use_state(String::default);
 
     let pwd_onchange = {
@@ -38,9 +37,21 @@ pub fn pwd_reset(props: &Props) -> Html {
         use_async(async move { get_signup_link_details(confirmation_id.as_str()).await })
     };
 
+    let error_formatter = {
+        Callback::from(move |err| match err {
+            AppError::NotFound => Some(tr!(invalid_reset_link)),
+            _ => None,
+        })
+    };
+
     {
         let email = email.clone();
+        let layout = layout.clone();
+        let fmt = error_formatter.clone();
+        let errors = errors.clone();
         use_mount(move || {
+            layout.set_pub_route_back_button_layout(tr!(password_reset));
+            errors.set_formatter(fmt);
             email.run();
         });
     }
@@ -71,36 +82,21 @@ pub fn pwd_reset(props: &Props) -> Html {
         })
     };
 
-    let error_formatter = {
-        Callback::from(move |err| match err {
-            AppError::NotFound => Some(Locale::current().invalid_reset_link()),
-            _ => None,
-        })
-    };
-
     if *finished {
-        alert(&Locale::current().reset_success_alert());
+        alert(&tr!(reset_success_alert));
         return html! { <Redirect<PublicRoute> to={PublicRoute::Login} /> };
     }
 
     html! {
-        <BlankPage
-            header_label={Locale::current().password_reset()}
-            loading={email.loading || reset_pwd.loading}
-            left_button={HeaderButtonProps::back()}
-        >
-            <ListErrors error={email.error.clone()} error_formatter={error_formatter.clone()} />
-            <ListErrors error={reset_pwd.error.clone()} error_formatter={error_formatter.clone()} />
-            if email.error.is_none() {
-                <form {onsubmit}>
-                    <div class={BODY_DIV_CSS}>
-                        <Pwd onchange={pwd_onchange} />
-                        <div class="relative">
-                            <button class={SUBMIT_BTN_CSS}>{ Locale::current().save() }</button>
-                        </div>
+        if email.error.is_none() {
+            <form {onsubmit}>
+                <div class={BODY_DIV_CSS}>
+                    <Pwd onchange={pwd_onchange} />
+                    <div class="relative">
+                        <button class={SUBMIT_BTN_CSS}>{ tr!(save) }</button>
                     </div>
-                </form>
-            }
-        </BlankPage>
+                </div>
+            </form>
+        }
     }
 }

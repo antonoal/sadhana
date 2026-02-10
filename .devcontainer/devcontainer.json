@@ -1,69 +1,65 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.209.6/containers/rust
 {
-    "name": "sadhana-pro",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "args": {
-            // Use the VARIANT arg to pick a Debian OS version: buster, bullseye
-            // Use bullseye when on local on arm64/Apple Silicon.
-            "VARIANT": "bookworm"
-        }
+  "name": "sadhana-pro",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      // Use the VARIANT arg to pick a Debian OS version: buster, bullseye
+      // Use bullseye when on local on arm64/Apple Silicon.
+      "VARIANT": "bookworm"
+    }
+  },
+  // Give container ptrace capability so that lldb can be used for debugging.
+  "runArgs": ["--init", "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined"],
+  // To improve disk performance on Mac OS and Windows hosts, use a named
+  // volume in place of the native `target` folder.
+  //
+  // See https://code.visualstudio.com/remote/advancedcontainers/improve-performance#_use-a-targeted-named-volume
+  "mounts": [
+    "source=sadhana-pro-target,target=${containerWorkspaceFolder}/target,type=volume",
+    "source=sadhana-pro-dist,target=${containerWorkspaceFolder}/dist,type=volume"
+  ],
+  // Set permissions on mounted target volume, and trivially invoke rustc to
+  // install specific toolchain required by project's toolchain file (if any).
+  "postCreateCommand": "sudo chown vscode target && sudo chown vscode dist && rustc --version",
+  // Set *default* container specific settings.json values on container create.
+  "settings": {
+    "lldb.executable": "/usr/bin/lldb",
+    // VS Code don't watch files under ./target
+    "files.watcherExclude": {
+      "**/target/**": true
     },
-    // Give container ptrace capability so that lldb can be used for debugging.
-    "runArgs": [
-        "--init",
-        "--cap-add=SYS_PTRACE",
-        "--security-opt",
-        "seccomp=unconfined"
-    ],
-    // To improve disk performance on Mac OS and Windows hosts, use a named
-    // volume in place of the native `target` folder.
-    //
-    // See https://code.visualstudio.com/remote/advancedcontainers/improve-performance#_use-a-targeted-named-volume
-    "mounts": [
-        "source=sadhana-pro-target,target=${containerWorkspaceFolder}/target,type=volume",
-        "source=sadhana-pro-dist,target=${containerWorkspaceFolder}/dist,type=volume",
-    ],
-    // Set permissions on mounted target volume, and trivially invoke rustc to
-    // install specific toolchain required by project's toolchain file (if any).
-    "postCreateCommand": "sudo chown vscode target && sudo chown vscode dist && rustc --version",
-    // Set *default* container specific settings.json values on container create.
-    "settings": {
-        "lldb.executable": "/usr/bin/lldb",
-        // VS Code don't watch files under ./target
-        "files.watcherExclude": {
-            "**/target/**": true
-        },
-        "rust-analyzer.check.command": "clippy"
-    },
-    // Add the IDs of extensions you want installed when the container is created.
-    "extensions": [
-        "vadimcn.vscode-lldb",
-        "mutantdino.resourcemonitor",
-        "matklad.rust-analyzer",
-        "tamasfe.even-better-toml",
-        "fill-labs.dependi",
-        "swellaby.vscode-rust-test-adapter",
-        "ms-vscode.test-adapter-converter",
-        "yzhang.markdown-all-in-one",
-        "eamodio.gitlens",
-        "streetsidesoftware.code-spell-checker",
-        "nhoizey.gremlins",
-        "bradlc.vscode-tailwindcss",
-        "kahole.magit",
-        "kaiwood.center-editor-window",
-        "naumovs.color-highlight",
-        "mhutchie.git-graph",
-        "oderwat.indent-rainbow",
-        "ms-vscode.makefile-tools",
-        "hdevalke.rust-test-lens",
-        "shuworks.vscode-jump-to-hint"
-    ],
-    // Use 'forwardPorts' to make a list of ports inside the container available locally.
-    // "forwardPorts": [],
-    // Use 'postCreateCommand' to run commands after the container is created.
-    // "postCreateCommand": "rustc --version",
-    // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-    "remoteUser": "vscode"
+    "rust-analyzer.check.command": "clippy"
+  },
+  // Add the IDs of extensions you want installed when the container is created.
+  "extensions": [
+    "vadimcn.vscode-lldb",
+    "mutantdino.resourcemonitor",
+    "matklad.rust-analyzer",
+    "tamasfe.even-better-toml",
+    "fill-labs.dependi",
+    "swellaby.vscode-rust-test-adapter",
+    "ms-vscode.test-adapter-converter",
+    "yzhang.markdown-all-in-one",
+    "eamodio.gitlens",
+    "streetsidesoftware.code-spell-checker",
+    "nhoizey.gremlins",
+    "bradlc.vscode-tailwindcss",
+    "kahole.magit",
+    "kaiwood.center-editor-window",
+    "naumovs.color-highlight",
+    "mhutchie.git-graph",
+    "oderwat.indent-rainbow",
+    "ms-vscode.makefile-tools",
+    "hdevalke.rust-test-lens",
+    "shuworks.vscode-jump-to-hint"
+  ],
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // "postCreateCommand": "rustc --version",
+  // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+  "remoteUser": "vscode",
+  "appPort": ["8080:8080"]
 }

@@ -166,44 +166,41 @@ pub fn charts() -> Html {
         use_effect_with(
             (*editing, active_report.is_none()),
             move |(editing, no_active_report)| {
-                layout.set_show_footer(!*editing);
-                layout.set_show_calendar(!*editing);
-                layout.set_title(
-                    editing
-                        .then_some(report.as_ref().map(|r| r.name.clone()).unwrap_or_default())
-                        .unwrap_or_default(),
-                );
-                let (mut l, mut r) = (vec![], vec![]);
-                if !(*editing || *no_active_report) {
-                    r.push(HeaderButton::edit(edit_onclick));
-                }
-                if *editing {
-                    l.push(HeaderButton::reset(form_ref.clone()));
-                    r.push(HeaderButton::submit(form_ref));
+                if *no_active_report {
+                    layout.set_app_layout(vec![HeaderButton::new_icon_redirect(
+                        AppRoute::NewReport,
+                        "icon-plus",
+                    )]);
                 } else {
-                    r.push(HeaderButton::ctx_menu(
-                        "icon-ellipsis-vertical",
-                        vec![
-                            CtxMenuEntry::link(
-                                AppRoute::NewReport,
-                                "icon-plus",
-                                &tr!(report_add_new),
-                            ),
-                            CtxMenuEntry::action(
-                                download_onclick,
-                                "icon-download",
-                                &tr!(download_csv),
-                            ),
-                            CtxMenuEntry::action(
-                                emit_signal_callback(&share_signal),
-                                share_icon,
-                                &share_label,
-                            ),
-                        ],
-                    ));
+                    layout.set_app_edit_layout(
+                        *editing,
+                        editing
+                            .then_some(report.as_ref().map(|r| r.name.clone()).unwrap_or_default())
+                            .unwrap_or_default(),
+                        form_ref,
+                        edit_onclick,
+                        vec![HeaderButton::ctx_menu(
+                            "icon-ellipsis-vertical",
+                            vec![
+                                CtxMenuEntry::link(
+                                    AppRoute::NewReport,
+                                    "icon-plus",
+                                    &tr!(report_add_new),
+                                ),
+                                CtxMenuEntry::action(
+                                    download_onclick,
+                                    "icon-download",
+                                    &tr!(download_csv),
+                                ),
+                                CtxMenuEntry::action(
+                                    emit_signal_callback(&share_signal),
+                                    share_icon,
+                                    &share_label,
+                                ),
+                            ],
+                        )],
+                    );
                 }
-
-                layout.set_header_buttons(l, r);
                 || ()
             },
         );

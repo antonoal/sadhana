@@ -76,7 +76,6 @@ pub fn input() -> Html {
                 AppRoute::UserPractices,
                 "icon-bars",
             )]);
-            layout.highlight_incomplete();
             required_practices.run();
         });
     }

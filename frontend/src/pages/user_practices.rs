@@ -6,23 +6,21 @@ use yew_hooks::{use_async, use_list, use_map, use_mount};
 use yew_router::prelude::*;
 
 use crate::{
-    components::{
-        blank_page::{BlankPage, HeaderButtonProps},
-        draggable_list::{DraggableList, Item},
-        list_errors::ListErrors,
-    },
+    components::draggable_list::{DraggableList, Item},
+    context::HeaderButton,
     css::*,
-    hooks::use_cache_aware_async,
-    i18n::Locale,
+    hooks::{use_cache_aware_async, use_layout_ctx},
     model::UserPractice,
     routes::AppRoute,
     services::{
         delete_user_practice, get_user_practices, reorder_user_practices, update_user_practice,
     },
+    tr,
 };
 
 #[function_component(UserPractices)]
 pub fn user_practices() -> Html {
+    let layout = use_layout_ctx();
     let nav = use_navigator().unwrap();
     let ordered_practices = use_list(vec![]);
     let local_practices = use_map(HashMap::default());
@@ -41,8 +39,17 @@ pub fn user_practices() -> Html {
     {
         // Load state on mount
         let server_practices = server_practices.clone();
+        let layout = layout.clone();
         use_mount(move || {
-            log::debug!("Loading All Practices");
+            layout.set_app_service_extra_layout(
+                true,
+                Some(tr!(practices)),
+                Some(AppRoute::Default),
+                vec![HeaderButton::new_icon_redirect(
+                    AppRoute::NewUserPractice,
+                    "icon-plus",
+                )],
+            );
             server_practices.run();
         });
     }
@@ -139,24 +146,10 @@ pub fn user_practices() -> Html {
     }
 
     html! {
-        <BlankPage
-            header_label={Locale::current().practices()}
-            left_button={HeaderButtonProps::back_to(AppRoute::Default)}
-            right_button={HeaderButtonProps::new_icon_redirect(AppRoute::NewUserPractice, "icon-plus")}
-            show_footer=true
-            selected_page={AppRoute::Default}
-            loading={server_practices.loading}
-        >
-            <ListErrors error={server_practices.error.clone()} />
-            <ListErrors error={reorder_practices.error.clone()} />
-            <div class={format!("mx-auto max-w-md {}", BODY_DIV_BASE_CSS)}>
-                // TODO: remove form
-                <form>
-                    { if server_practices.loading || local_practices.current().is_empty() {
-                        html!{}
-                    } else {html! {
-                        <DraggableList
-                            items={server_practices
+        <div class={format!("mx-auto max-w-md {}", BODY_DIV_BASE_CSS)}>
+            if !(server_practices.loading || local_practices.current().is_empty()) {
+                <DraggableList
+                    items={server_practices
                                 .data
                                 .as_ref()
                                 .unwrap_or(&vec![])
@@ -167,23 +160,22 @@ pub fn user_practices() -> Html {
                                         name: display_practice(local_practices.current().get(&p.id).unwrap())
                                     }
                                 )
-                                .collect::<Vec<_>>()
-                        }
-                            toggle_hidden={toggle_hidden.clone()}
-                            is_hidden={is_hidden.clone()}
-                            rename={rename.clone()}
-                            rename_popup_label={Locale::current().enter_new_practice_name()}
-                            request_new_name=false
-                            delete={delete.clone()}
-                            delete_popup_label={Locale::current().delete_practice_warning()}
-                            reorder={reorder.clone()}
-                            />
-                    }} }
-                </form>
-                <p class="text-xs text-zinc-500 dark:text-zinc-200">
-                    { Locale::current().asterisk_is_required_memo() }
-                </p>
-            </div>
-        </BlankPage>
+                                .collect::<Vec<_>>()}
+                    toggle_hidden={toggle_hidden.clone()}
+                    is_hidden={is_hidden.clone()}
+                    rename={rename.clone()}
+                    rename_popup_label={tr!(enter_new_practice_name)}
+                    request_new_name=false
+                    delete={delete.clone()}
+                    delete_popup_label={tr!(delete_practice_warning)}
+                    reorder={reorder.clone()}
+                />
+            }
+            <p
+                class="text-xs text-zinc-500 dark:text-zinc-200"
+            >
+                { tr!(asterisk_is_required_memo) }
+            </p>
+        </div>
     }
 }

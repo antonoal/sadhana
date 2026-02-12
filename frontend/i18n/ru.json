@@ -67,7 +67,7 @@
   "request_error": "Сервер недоступен",
   "internal_server_error": "Внутренняя ошибка",
   "unauthorized_error": "Неверно введен пароль",
-  "practice_already_exists": "Практика с именем {practice_name} уже существует",
+  "practice_already_exists": "Практика уже существует",
   "invalid_signup_link": "Неправильная или просроченная ссылка для создания пользователя",
   "invalid_reset_link": "Неправильная или просроченная ссылка для сброса пароля",
   "err_not_found": "Ошибка 'Не найдено'",

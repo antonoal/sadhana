@@ -8,15 +8,10 @@ use yew_hooks::{use_async, use_mount};
 use yew_router::prelude::*;
 
 use crate::{
-    components::{
-        blank_page::{BlankPage, ButtonType, CalendarProps, HeaderButtonProps},
-        grid::*,
-        list_errors::ListErrors,
-        summary_details::*,
-    },
-    context::Session,
+    components::{grid::*, list_errors::ListErrors, summary_details::*},
+    context::{ButtonType, HeaderButton, Session},
     css::*,
-    hooks::use_cache_aware_async,
+    hooks::{use_cache_aware_async, use_layout_ctx},
     model::{
         BetterDirection, Bound, ColourZonesConfig, UserYatraData, Value, Yatra, YatraData,
         ZoneColour,
@@ -34,6 +29,7 @@ const SELECTED_YATRA_ID_KEY: &str = "selected_yatra";
 
 #[function_component(Yatras)]
 pub fn yatras() -> Html {
+    let layout = use_layout_ctx();
     let session_ctx = use_context::<Session>().expect("No session state found");
     let nav = use_navigator().unwrap();
     let yatras = use_cache_aware_async(get_user_yatras().map(|y| y.yatras));
@@ -105,10 +101,28 @@ pub fn yatras() -> Html {
 
     {
         let data = data.clone();
-        use_effect_with((selected_yatra.clone(), session_ctx.clone()), move |_| {
-            data.run();
-            || ()
-        });
+        let layout = layout.clone();
+        use_effect_with(
+            (selected_yatra.clone(), session_ctx.clone()),
+            move |(selected_yatra, _)| {
+                data.run();
+                layout.set_app_layout(
+                    selected_yatra
+                        .as_ref()
+                        .iter()
+                        .map(|y| {
+                            HeaderButton::new_redirect(
+                                tr!(settings),
+                                AppRoute::YatraSettings { id: y.id.clone() },
+                                None,
+                                ButtonType::Button,
+                            )
+                        })
+                        .collect(),
+                );
+                || ()
+            },
+        );
     }
 
     let yatra_onchange = {
@@ -339,36 +353,16 @@ pub fn yatras() -> Html {
         </>
     };
 
-    html! {
-        <BlankPage
-            show_footer=true
-            selected_page={AppRoute::Yatras}
-            loading={yatras.loading || data.loading}
-            left_button={HeaderButtonProps::blank()}
-            right_button={if let Some(yatra) = selected_yatra.as_ref() {
-                    HeaderButtonProps::new_redirect(
-                        tr!(settings),
-                        AppRoute::YatraSettings { id: yatra.id.clone() },
-                        None,
-                        ButtonType::Button
-                    )
-                } else {
-                    HeaderButtonProps::blank()
-                }}
-            calendar={CalendarProps::no_override_selected_date()}
-        >
-            { if !yatras.loading
-                    && yatras
-                        .data
-                        .iter()
-                        .flat_map(|inner| inner.iter())
-                        .next()
-                        .is_none()
-                {
-                    empty_body
-                } else {
-                    grid_body
-                } }
-        </BlankPage>
+    if !yatras.loading
+        && yatras
+            .data
+            .iter()
+            .flat_map(|inner| inner.iter())
+            .next()
+            .is_none()
+    {
+        empty_body
+    } else {
+        grid_body
     }
 }

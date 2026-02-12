@@ -63,6 +63,7 @@ pub enum AppRoute {
     #[at("/settings/help")]
     Help,
     #[at("/user/practices")]
+    // TODO: move under /settings so that the icon in footer is correctly highlighted
     UserPractices,
     #[at("/user/practice/new")]
     NewUserPractice,

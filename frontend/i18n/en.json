@@ -67,7 +67,7 @@
   "request_error": "Network error",
   "internal_server_error": "Internal server error",
   "unauthorized_error": "Invalid password",
-  "practice_already_exists": "Practice {practice_name} already exists",
+  "practice_already_exists": "Practice already exists",
   "invalid_signup_link": "Invalid or expired signup link",
   "invalid_reset_link": "Invalid or expired password reset link",
   "err_not_found": "Server returned not found error",

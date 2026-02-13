@@ -51,6 +51,7 @@ fn fmt(
             let msg = match pub_route {
                 Some(PublicRoute::Login) => tr!(login_not_found),
                 Some(PublicRoute::PasswordReset) => tr!(invalid_reset_link),
+                Some(PublicRoute::RegisterWithConfirmationId { .. }) => tr!(invalid_signup_link),
                 _ => tr!(err_not_found),
             };
             vec![msg]

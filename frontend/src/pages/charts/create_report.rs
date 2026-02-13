@@ -1,18 +1,16 @@
 use super::{SelectedReportId, SELECTED_REPORT_ID_KEY};
 use crate::{
-    components::{
-        blank_page::{BlankPage, HeaderButtonProps},
-        list_errors::ListErrors,
-    },
+    context::HeaderButton,
     css::*,
-    i18n::Locale,
+    hooks::{use_async_with_error, use_layout_ctx},
     pages::charts::ReportForm,
     services::report::create_new_report,
+    tr,
 };
 use gloo::storage::{LocalStorage, Storage};
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use yew_hooks::use_async;
+use yew_hooks::use_mount;
 use yew_router::prelude::use_navigator;
 
 enum ReportType {
@@ -22,15 +20,17 @@ enum ReportType {
 
 #[function_component(CreateReport)]
 pub fn create_report() -> Html {
+    let layout = use_layout_ctx();
     let report_name = use_state(String::default);
     let report_type = use_state(|| ReportType::Graph);
+    let form_ref = use_node_ref();
     let nav = use_navigator().unwrap();
 
     let create = {
         let report_name = report_name.clone();
         let report_type = report_type.clone();
         let nav = nav.clone();
-        use_async(async move {
+        use_async_with_error(async move {
             let report = match *report_type {
                 ReportType::Graph => ReportForm::default_graph(&*report_name),
                 ReportType::Grid => ReportForm::default_grid(&*report_name),
@@ -44,6 +44,19 @@ pub fn create_report() -> Html {
                 .map(|_| nav.back())
         })
     };
+
+    {
+        let layout = layout.clone();
+        let form_ref = form_ref.clone();
+        use_mount(move || {
+            layout.set_app_service_layout(
+                false,
+                Some(tr!(report_add_new)),
+                None,
+                vec![HeaderButton::submit(form_ref)],
+            );
+        });
+    }
 
     let report_type_onchange = {
         let report_type = report_type.clone();
@@ -80,46 +93,37 @@ pub fn create_report() -> Html {
     };
 
     html! {
-        <form {onsubmit}>
-            <BlankPage
-                show_footer=false
-                loading={create.loading}
-                header_label={Locale::current().report_add_new()}
-                left_button={HeaderButtonProps::back()}
-                right_button={HeaderButtonProps::submit(Locale::current().save())}
-            >
-                <ListErrors error={create.error.clone()} />
-                <div class={BODY_DIV_CSS}>
-                    <div class="relative">
-                        <input
-                            type="text"
-                            placeholder="Name"
-                            value={(*report_name).clone()}
-                            id="report_name"
-                            oninput={report_name_oninput}
-                            class={INPUT_CSS}
-                            required=true
-                            autocomplete="off"
-                        />
-                        <label for="report_name" class={INPUT_LABEL_CSS}>
-                            { Locale::current().report_name() }
-                        </label>
-                    </div>
-                    <div class="relative">
-                        <select class={INPUT_CSS} id="report_type" onchange={report_type_onchange}>
-                            <option class="text-black" value="graph" selected=true>
-                                { Locale::current().report_type_graph() }
-                            </option>
-                            <option class="text-black" value="grid">
-                                { Locale::current().report_type_grid() }
-                            </option>
-                        </select>
-                        <label for="report_type" class={INPUT_LABEL_CSS}>
-                            { format!(" {}: ",Locale::current().report_type()) }
-                        </label>
-                    </div>
+        <form ref={form_ref} {onsubmit}>
+            <div class={BODY_DIV_CSS}>
+                <div class="relative">
+                    <input
+                        type="text"
+                        placeholder="Name"
+                        value={(*report_name).clone()}
+                        id="report_name"
+                        oninput={report_name_oninput}
+                        class={INPUT_CSS}
+                        required=true
+                        autocomplete="off"
+                    />
+                    <label for="report_name" class={INPUT_LABEL_CSS}>
+                        { tr!(report_name) }
+                    </label>
                 </div>
-            </BlankPage>
+                <div class="relative">
+                    <select class={INPUT_CSS} id="report_type" onchange={report_type_onchange}>
+                        <option class="text-black" value="graph" selected=true>
+                            { tr!(report_type_graph) }
+                        </option>
+                        <option class="text-black" value="grid">
+                            { tr!(report_type_grid) }
+                        </option>
+                    </select>
+                    <label for="report_type" class={INPUT_LABEL_CSS}>
+                        { format!(" {}: ", tr!(report_type)) }
+                    </label>
+                </div>
+            </div>
         </form>
     }
 }

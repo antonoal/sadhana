@@ -41,7 +41,7 @@ pub fn user_practices() -> Html {
         let server_practices = server_practices.clone();
         let layout = layout.clone();
         use_mount(move || {
-            layout.set_app_service_extra_layout(
+            layout.set_app_service_layout(
                 true,
                 Some(tr!(practices)),
                 Some(AppRoute::Default),

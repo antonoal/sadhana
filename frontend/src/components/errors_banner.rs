@@ -57,6 +57,18 @@ fn fmt(
         }
         AppError::UnprocessableEntity(err) => match (pub_route, app_route) {
             (Some(PublicRoute::Register), _) => vec![tr!(user_already_exists)],
+            (_, Some(AppRoute::JoinYatra { .. }))
+                if err.iter().any(|s| s.contains("already exists")) =>
+            {
+                vec![tr!(yatra_already_joined)]
+            }
+            (_, Some(AppRoute::YatraSettings { .. }))
+                if err
+                    .iter()
+                    .any(|s| s.ends_with("Can't delete last yatra admin")) =>
+            {
+                vec![tr!(yatra_last_admin_cannot_leave)]
+            }
             (_, Some(AppRoute::NewUserPractice | AppRoute::NewUserPracticeWithName { .. }))
                 if err.iter().any(|s| s.contains("already exists")) =>
             {

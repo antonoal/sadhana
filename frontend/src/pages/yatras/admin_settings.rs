@@ -9,15 +9,14 @@ use yew_router::prelude::*;
 
 use crate::{
     components::{
-        blank_page::{BlankPage, HeaderButtonProps},
         draggable_list::{DraggableList, Item},
-        list_errors::ListErrors,
         share_link::{ShareLink, can_share, emit_signal_callback, set_signal_callback},
         summary_details::SummaryDetails,
     },
+    context::{CalendarState, HeaderButton, LayoutAction, LayoutState},
     css::*,
-    hooks::use_cache_aware_async,
-    i18n::*,
+    hooks::{use_cache_aware_async, use_layout_ctx},
+    i18n::Index,
     model::{Aggregation, PracticeDataType, TimeRange, Yatra, YatraStatistic, YatraStatistics},
     services::{
         delete_yatra, delete_yatra_practice, delete_yatra_user, get_yatra, get_yatra_practices,
@@ -33,8 +32,15 @@ pub struct Props {
     pub yatra_id: AttrValue,
 }
 
+/**************************************** */
+// TODO: Break this page down into multiple.
+// This one should become like the /settings page - a menu
+// Editing of each component should be a separate, simple page
+/**************************************** */
+
 #[function_component(AdminSettings)]
 pub fn admin_settings(props: &Props) -> Html {
+    let layout = use_layout_ctx();
     let reload = use_state(|| true);
     let yatra_state = use_state(Yatra::default);
     let stats_config = use_state(YatraStatistics::default);
@@ -152,7 +158,9 @@ pub fn admin_settings(props: &Props) -> Html {
         let all_practices = all_practices.clone();
         let members = members.clone();
         let yatra = yatra.clone();
+        let layout = layout.clone();
         use_mount(move || {
+            layout.set_app_service_layout(false, None, Some(AppRoute::Yatras), vec![]);
             all_practices.run();
             yatra.run();
             members.run();
@@ -385,104 +393,94 @@ pub fn admin_settings(props: &Props) -> Html {
     ];
 
     html! {
-        <BlankPage
-            left_button={HeaderButtonProps::done(AppRoute::YatraSettings { id: props.yatra_id.to_string(), })}
-            loading={all_practices.loading || members.loading}
+        <form
+            onsubmit={let update_yatra = update_yatra.clone();
+                Callback::from(move |e: SubmitEvent| {
+                    e.prevent_default();
+                    update_yatra.run();
+                })}
         >
-            <ListErrors error={all_practices.error.clone()} />
-            <ListErrors error={members.error.clone()} />
-            <ListErrors error={toggle_is_admin.error.clone()} />
-            <ListErrors error={delete_member.error.clone()} />
-            <ListErrors error={reorder_practices.error.clone()} />
-            <ListErrors error={update_yatra.error.clone()} />
-            <ListErrors error={delete_yatra.error.clone()} />
-            <form
-                onsubmit={let update_yatra = update_yatra.clone();
-                    Callback::from(move |_: SubmitEvent| {
-                        update_yatra.run();
-                    })}
-            >
-                <div class={tw_merge!(BODY_DIV_BASE_CSS, "mx-auto max-w-md")}>
-                    <SummaryDetails open=true label={tr!(yatra_general)}>
-                        <div class={BODY_DIV_CSS}>
-                            <div class="relative">
-                                <input
-                                    onchange={yatra_name_onchange}
-                                    type="text"
-                                    id="yatra_name"
-                                    value={yatra_state.name.clone()}
-                                    placeholder="yatra_name"
-                                    autocomplete="off"
-                                    required=true
-                                    class={tw_merge!(INPUT_CSS, "text-center")}
-                                />
-                                <label for="yatra_name" class={INPUT_LABEL_CSS}>
-                                    <i class="icon-doc" />
-                                    { tr!(yatra_name_label) }
-                                </label>
-                            </div>
-                            <div>
-                                <label class="flex justify-between whitespace-nowrap pl-2 pr-2">
-                                    <span class="">
-                                        <i class="icon-tick" />
-                                        { tr!(yatra_show_stability) }
-                                    </span>
-                                    <div class="flex">
-                                        <input
-                                            type="checkbox"
-                                            class={CHECKBOX_INPUT_CSS}
-                                            onclick={checkbox_onclick}
-                                            checked={yatra_state.show_stability_metrics}
-                                        />
-                                    </div>
-                                </label>
-                                <div class="pt-2">
-                                    <p class="text-xs text-zinc-500 dark:text-zinc-200">
-                                        { tr!(yatra_heatmap_memo_p1) }
-                                    </p>
-                                    <p class="text-xs text-zinc-500 dark:text-zinc-200">
-                                        { tr!(yatra_heatmap_memo_p2) }
-                                    </p>
-                                    <p class="text-xs text-zinc-500 dark:text-zinc-200">
-                                        { tr!(yatra_heatmap_memo_p3) }
-                                    </p>
+            <div class={tw_merge!(BODY_DIV_BASE_CSS, "mx-auto max-w-md")}>
+                <SummaryDetails open=true label={tr!(yatra_general)}>
+                    <div class={BODY_DIV_CSS}>
+                        <div class="relative">
+                            <input
+                                onchange={yatra_name_onchange}
+                                type="text"
+                                id="yatra_name"
+                                value={yatra_state.name.clone()}
+                                placeholder="yatra_name"
+                                autocomplete="off"
+                                required=true
+                                class={tw_merge!(INPUT_CSS, "text-center")}
+                            />
+                            <label for="yatra_name" class={INPUT_LABEL_CSS}>
+                                <i class="icon-doc" />
+                                { tr!(yatra_name_label) }
+                            </label>
+                        </div>
+                        <div>
+                            <label class="flex justify-between whitespace-nowrap pl-2 pr-2">
+                                <span class="">
+                                    <i class="icon-tick" />
+                                    { tr!(yatra_show_stability) }
+                                </span>
+                                <div class="flex">
+                                    <input
+                                        type="checkbox"
+                                        class={CHECKBOX_INPUT_CSS}
+                                        onclick={checkbox_onclick}
+                                        checked={yatra_state.show_stability_metrics}
+                                    />
                                 </div>
+                            </label>
+                            <div class="pt-2">
+                                <p class="text-xs text-zinc-500 dark:text-zinc-200">
+                                    { tr!(yatra_heatmap_memo_p1) }
+                                </p>
+                                <p class="text-xs text-zinc-500 dark:text-zinc-200">
+                                    { tr!(yatra_heatmap_memo_p2) }
+                                </p>
+                                <p class="text-xs text-zinc-500 dark:text-zinc-200">
+                                    { tr!(yatra_heatmap_memo_p3) }
+                                </p>
                             </div>
                         </div>
+                    </div>
+                </SummaryDetails>
+                if !all_practices.loading {
+                    <SummaryDetails open=true label={tr!(yatra_practices)}>
+                        <DraggableList
+                            items={all_practices.data
+                                .as_ref()
+                                .unwrap_or(&vec![])
+                                .iter()
+                                .map(|p| Item { id: p.id.clone(), name: p.practice.clone() })
+                                .collect::<Vec<_>>()}
+                            toggle_hidden_enabled=false
+                            toggle_hidden={Callback::from(|_|{})}
+                            is_hidden={Callback::from(|_| false)}
+                            rename={edit_practice}
+                            request_new_name=false
+                            rename_popup_label={tr!(enter_new_practice_name)}
+                            delete={delete.clone()}
+                            delete_popup_label={tr!(yatra_delete_practice_warning)}
+                            reorder={reorder.clone()}
+                        />
+                        <div>
+                            <button class={BTN_CSS} onclick={new_yatra_practice_onclick}>
+                                <i class="icon-plus" />
+                                { tr!(add_new_practice) }
+                            </button>
+                        </div>
                     </SummaryDetails>
-                    if !all_practices.loading {
-                        <SummaryDetails open=true label={tr!(yatra_practices)}>
-                            <DraggableList
-                                items={all_practices.data
-                                    .as_ref()
-                                    .unwrap_or(&vec![])
-                                    .iter()
-                                    .map(|p| Item { id: p.id.clone(), name: p.practice.clone() })
-                                    .collect::<Vec<_>>()}
-                                toggle_hidden_enabled=false
-                                toggle_hidden={Callback::from(|_|{})}
-                                is_hidden={Callback::from(|_| false)}
-                                rename={edit_practice}
-                                request_new_name=false
-                                rename_popup_label={tr!(enter_new_practice_name)}
-                                delete={delete.clone()}
-                                delete_popup_label={tr!(yatra_delete_practice_warning)}
-                                reorder={reorder.clone()}
-                            />
-                            <div>
-                                <button class={BTN_CSS} onclick={new_yatra_practice_onclick}>
-                                    <i class="icon-plus" />
-                                    { tr!(add_new_practice) }
-                                </button>
-                            </div>
-                        </SummaryDetails>
-                        <SummaryDetails label={tr!(yatra_members)}>
-                            { for members
-                                    .data.as_ref()
-                                    .unwrap_or(&vec![])
-                                    .iter()
-                                    .enumerate()
-                                    .map( |(idx, user)| html! {
+                    <SummaryDetails label={tr!(yatra_members)}>
+                        { for members
+                                .data.as_ref()
+                                .unwrap_or(&vec![])
+                                .iter()
+                                .enumerate()
+                                .map( |(idx, user)| html! {
                             <div class="flex w-full justify-center align-baseline">
                                 <label
                                     class="flex w-full justify-between whitespace-nowrap mb-6"
@@ -501,183 +499,178 @@ pub fn admin_settings(props: &Props) -> Html {
                                     <i onclick={delete_member_onclick.clone()} id={user.user_id.clone()} class="cursor-pointer icon-bin"/>
                                 </label>
                             </div>
-                            }) }
-                        </SummaryDetails>
-                        <SummaryDetails label={tr!(yatra_stats_section_label)}>
-                            <div
-                                class={tw_merge!(if stats_config.statistics.is_empty() { BODY_DIV_CSS } else { BODY_DIV_BASE_CSS }, "pt-8")}
-                            >
-                                <div class="relative">
-                                    <select
-                                        onchange={stats_visibility_onchange}
-                                        id="visibility"
-                                        class={tw_merge!(
-                                                INPUT_CSS,
-                                                "appearance-none text-center [text-align-last:center] has-value",
-                                            )}
-                                    >
-                                        { for visibility_options.iter().enumerate().map(|(i, option)| html! {
-                                            <option value={ option.clone() } selected={ stats_config.visible_to_all && i == 1 } >{ option.clone() }</option>
-                                        }) }
-                                    </select>
-                                    <label for="visibility" class={INPUT_SELECT_LABEL_CSS}>
-                                        <i class="icon-rounds" />
-                                        { tr!(yatra_stats_visible_to) }
-                                    </label>
-                                </div>
-                                { for stats_config.statistics.iter().enumerate().map(|(idx, stat)| html! {
-                                    <SummaryDetails
-                                        label={
-                                            if stat.label.is_empty() {
-                                                tr!(yatra_stats_stat_heading, Index(&(idx + 1).to_string()))
-                                            } else {
-                                                stat.label.clone()
-                                            }}
-                                        open={ stat.label.is_empty() || stat.practice_id.is_empty() }
-                                    >
-                                        <div id={idx.to_string()} class={BODY_DIV_CSS}>
-                                            <div class="relative">
-                                                <input
-                                                    onchange={stats_label_onchange.clone()}
-                                                    type="text"
-                                                    id={idx.to_string()}
-                                                    value={stat.label.to_owned()}
-                                                    placeholder="label"
-                                                    autocomplete="off"
-                                                    required=true
-                                                    class={tw_merge!(INPUT_CSS, "text-center")}
-                                                />
-                                                <label for={idx.to_string()} class={INPUT_LABEL_CSS}>
-                                                    <i class="icon-rounds"/>
-                                                    { tr!(yatra_stats_stat_label) }
-                                                </label>
-                                            </div>
-                                            <div class="relative">
-                                                <select
-                                                    onchange={stats_practice_onchange.clone()}
-                                                    id={idx.to_string()}
-                                                    required=true
-                                                    class={
-                                                        tw_merge!(
-                                                            INPUT_CSS,
-                                                            "appearance-none text-center [text-align-last:center]",
-                                                            if !stat.practice_id.is_empty() { "has-value" } else { "" }
-                                                        )
-                                                    }
-                                                >
-                                                    <option class="text-black"
-                                                        value=""
-                                                        disabled=true
-                                                        style="display: none"
-                                                        selected={ stat.practice_id.is_empty() }
-                                                    />
-                                                    { for all_practices.data.iter().flat_map(|inner| inner.iter()).map(|p| {
-                                                        html! {
-                                                            <option value={ p.id.to_owned() } selected={ p.id == stat.practice_id }>{ p.practice.as_str() }</option>
-                                                        }
-                                                    }) }
-                                                </select>
-                                                <label for={idx.to_string()} class={INPUT_SELECT_LABEL_CSS}>
-                                                    <i class="icon-rounds"/>
-                                                    { tr!(yatra_stats_practice_label) }
-                                                </label>
-                                            </div>
-                                            <div class="relative">
-                                                <select
-                                                    onchange={aggregation_onchange.clone()}
-                                                    id={idx.to_string()}
-                                                    required=true
-                                                    class={
-                                                        tw_merge!(
-                                                            INPUT_CSS,
-                                                            "appearance-none text-center [text-align-last:center] has-value",
-                                                        )
-                                                    }
-                                                >
-                                                    { for Aggregation::iter().filter(|agg| is_good_for_practice(agg, &stat.practice_id)).map(|agg| {
-                                                        html! {
-                                                            <option value={ agg.to_string() } selected={ agg == stat.aggregation }>{ agg.to_localised_string() }</option>
-                                                        }
-                                                    }) }
-                                                </select>
-                                                <label for={idx.to_string()} class={INPUT_SELECT_LABEL_CSS}>
-                                                    <i class="icon-rounds"/>
-                                                    { tr!(yatra_stats_agg_label) }
-                                                </label>
-                                            </div>
-                                            <div class="relative">
-                                                <select
-                                                    onchange={stats_time_range_onchange.clone()}
-                                                    id={ idx.to_string() }
-                                                    required=true
-                                                    class={
-                                                        tw_merge!(
-                                                            INPUT_CSS,
-                                                            "appearance-none text-center [text-align-last:center] has-value",
-                                                        )
-                                                    }
-                                                >
-                                                    { for TimeRange::iter().map(|tr| {
-                                                        html! {
-                                                            <option value={ tr.to_string() } selected={ tr == stat.time_range }>{ tr.to_localised_string() }</option>
-                                                        }
-                                                    }) }
-                                                </select>
-                                                <label for={ idx.to_string() } class={ INPUT_SELECT_LABEL_CSS }>
-                                                    <i class="icon-rounds"/>
-                                                    { tr!(yatra_stats_time_range_label) }
-                                                </label>
-                                            </div>
-                                            <div>
-                                                <button type="button" id={ idx.to_string() } class={ BTN_CSS } onclick={ stats_delete_onclick.clone() }>
-                                                    <i class="icon-bin" />
-                                                    { tr!(yatra_stats_delete_stat) }
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </SummaryDetails>
-                                }) }
-                                <div>
-                                    <button
-                                        type="button"
-                                        class={BTN_CSS}
-                                        onclick={add_stat_onclick}
-                                    >
-                                        <i class="icon-plus" />
-                                        { tr!(yatra_stats_add_stat) }
-                                    </button>
-                                </div>
-                            </div>
-                        </SummaryDetails>
-                    }
-                    <div
-                        class="relative"
-                    >
-                        <button
-                            type="button"
-                            onclick={emit_signal_callback(&share_signal)}
-                            class={BTN_CSS}
+                        }) }
+                    </SummaryDetails>
+                    <SummaryDetails label={tr!(yatra_stats_section_label)}>
+                        <div
+                            class={tw_merge!(if stats_config.statistics.is_empty() { BODY_DIV_CSS } else { BODY_DIV_BASE_CSS }, "pt-8")}
                         >
-                            <i class={if can_share {"icon-share"} else {"icon-doc-dup"}} />
-                            { if can_share {tr!(yatra_share_join_link)} else {tr!(yatra_copy_join_link)} }
-                        </button>
-                        <ShareLink
-                            relative_link={format!("/yatra/{}/join", props.yatra_id.as_str())}
-                            run_signal={set_signal_callback(&share_signal)}
-                        />
-                    </div>
-                    <div class={tw_merge!(TWO_COLS_NO_GAP_CSS, "gap-x-8")}>
-                        <button class={BTN_CSS} onclick={delete_yatra_onclick}>
-                            <i class="icon-bin" />
-                            { tr!(yatra_delete) }
-                        </button>
-                        <button class={SUBMIT_BTN_CSS}>
-                            <i class="icon-save" />
-                            { tr!(save) }
-                        </button>
-                    </div>
+                            <div class="relative">
+                                <select
+                                    onchange={stats_visibility_onchange}
+                                    id="visibility"
+                                    class={tw_merge!(
+                                            INPUT_CSS,
+                                            "appearance-none text-center [text-align-last:center] has-value",
+                                        )}
+                                >
+                                    { for visibility_options.iter().enumerate().map(|(i, option)| html! {
+                                        <option value={ option.clone() } selected={ stats_config.visible_to_all && i == 1 } >{ option.clone() }</option>
+                                    }) }
+                                </select>
+                                <label for="visibility" class={INPUT_SELECT_LABEL_CSS}>
+                                    <i class="icon-rounds" />
+                                    { tr!(yatra_stats_visible_to) }
+                                </label>
+                            </div>
+                            { for stats_config.statistics.iter().enumerate().map(|(idx, stat)| html! {
+                                <SummaryDetails
+                                    label={
+                                        if stat.label.is_empty() {
+                                            tr!(yatra_stats_stat_heading, Index(&(idx + 1).to_string()))
+                                        } else {
+                                            stat.label.clone()
+                                        }}
+                                    open={ stat.label.is_empty() || stat.practice_id.is_empty() }
+                                >
+                                    <div id={idx.to_string()} class={BODY_DIV_CSS}>
+                                        <div class="relative">
+                                            <input
+                                                onchange={stats_label_onchange.clone()}
+                                                type="text"
+                                                id={idx.to_string()}
+                                                value={stat.label.to_owned()}
+                                                placeholder="label"
+                                                autocomplete="off"
+                                                required=true
+                                                class={tw_merge!(INPUT_CSS, "text-center")}
+                                            />
+                                            <label for={idx.to_string()} class={INPUT_LABEL_CSS}>
+                                                <i class="icon-rounds"/>
+                                                { tr!(yatra_stats_stat_label) }
+                                            </label>
+                                        </div>
+                                        <div class="relative">
+                                            <select
+                                                onchange={stats_practice_onchange.clone()}
+                                                id={idx.to_string()}
+                                                required=true
+                                                class={
+                                                    tw_merge!(
+                                                        INPUT_CSS,
+                                                        "appearance-none text-center [text-align-last:center]",
+                                                        if !stat.practice_id.is_empty() { "has-value" } else { "" }
+                                                    )
+                                                }
+                                            >
+                                                <option class="text-black"
+                                                    value=""
+                                                    disabled=true
+                                                    style="display: none"
+                                                    selected={ stat.practice_id.is_empty() }
+                                                />
+                                                { for all_practices.data.iter().flat_map(|inner| inner.iter()).map(|p| {
+                                                    html! {
+                                                        <option value={ p.id.to_owned() } selected={ p.id == stat.practice_id }>{ p.practice.as_str() }</option>
+                                                    }
+                                                }) }
+                                            </select>
+                                            <label for={idx.to_string()} class={INPUT_SELECT_LABEL_CSS}>
+                                                <i class="icon-rounds"/>
+                                                { tr!(yatra_stats_practice_label) }
+                                            </label>
+                                        </div>
+                                        <div class="relative">
+                                            <select
+                                                onchange={aggregation_onchange.clone()}
+                                                id={idx.to_string()}
+                                                required=true
+                                                class={
+                                                    tw_merge!(
+                                                        INPUT_CSS,
+                                                        "appearance-none text-center [text-align-last:center] has-value",
+                                                    )
+                                                }
+                                            >
+                                                { for Aggregation::iter().filter(|agg| is_good_for_practice(agg, &stat.practice_id)).map(|agg| {
+                                                    html! {
+                                                        <option value={ agg.to_string() } selected={ agg == stat.aggregation }>{ agg.to_localised_string() }</option>
+                                                    }
+                                                }) }
+                                            </select>
+                                            <label for={idx.to_string()} class={INPUT_SELECT_LABEL_CSS}>
+                                                <i class="icon-rounds"/>
+                                                { tr!(yatra_stats_agg_label) }
+                                            </label>
+                                        </div>
+                                        <div class="relative">
+                                            <select
+                                                onchange={stats_time_range_onchange.clone()}
+                                                id={ idx.to_string() }
+                                                required=true
+                                                class={
+                                                    tw_merge!(
+                                                        INPUT_CSS,
+                                                        "appearance-none text-center [text-align-last:center] has-value",
+                                                    )
+                                                }
+                                            >
+                                                { for TimeRange::iter().map(|tr| {
+                                                    html! {
+                                                        <option value={ tr.to_string() } selected={ tr == stat.time_range }>{ tr.to_localised_string() }</option>
+                                                    }
+                                                }) }
+                                            </select>
+                                            <label for={ idx.to_string() } class={ INPUT_SELECT_LABEL_CSS }>
+                                                <i class="icon-rounds"/>
+                                                { tr!(yatra_stats_time_range_label) }
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <button type="button" id={ idx.to_string() } class={ BTN_CSS } onclick={ stats_delete_onclick.clone() }>
+                                                <i class="icon-bin" />
+                                                { tr!(yatra_stats_delete_stat) }
+                                            </button>
+                                        </div>
+                                    </div>
+                                </SummaryDetails>
+                            }) }
+                            <div>
+                                <button type="button" class={BTN_CSS} onclick={add_stat_onclick}>
+                                    <i class="icon-plus" />
+                                    { tr!(yatra_stats_add_stat) }
+                                </button>
+                            </div>
+                        </div>
+                    </SummaryDetails>
+                }
+                <div
+                    class="relative"
+                >
+                    <button
+                        type="button"
+                        onclick={emit_signal_callback(&share_signal)}
+                        class={BTN_CSS}
+                    >
+                        <i class={if can_share {"icon-share"} else {"icon-doc-dup"}} />
+                        { if can_share {tr!(yatra_share_join_link)} else {tr!(yatra_copy_join_link)} }
+                    </button>
+                    <ShareLink
+                        relative_link={format!("/yatra/{}/join", props.yatra_id.as_str())}
+                        run_signal={set_signal_callback(&share_signal)}
+                    />
                 </div>
-            </form>
-        </BlankPage>
+                <div class={tw_merge!(TWO_COLS_NO_GAP_CSS, "gap-x-8")}>
+                    <button class={BTN_CSS} onclick={delete_yatra_onclick}>
+                        <i class="icon-bin" />
+                        { tr!(yatra_delete) }
+                    </button>
+                    <button class={SUBMIT_BTN_CSS}>
+                        <i class="icon-save" />
+                        { tr!(save) }
+                    </button>
+                </div>
+            </div>
+        </form>
     }
 }

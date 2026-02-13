@@ -24,7 +24,7 @@ pub fn help() -> Html {
         let layout = layout.clone();
         let show_footer = ctx.is_authenticated();
         use_mount(move || {
-            layout.set_app_service_layout(show_footer, None);
+            layout.set_app_service_layout(show_footer, None, None, vec![]);
             version.run();
         })
     }

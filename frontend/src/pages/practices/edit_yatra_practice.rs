@@ -8,14 +8,9 @@ use super::daily_score_conf::DailyScoreConf;
 
 use crate::{
     AppRoute,
-    components::{
-        blank_page::{BlankPage, HeaderButtonProps},
-        grid::Grid,
-        list_errors::ListErrors,
-        summary_details::SummaryDetails,
-    },
+    components::{grid::Grid, summary_details::SummaryDetails},
     css::*,
-    hooks::use_cache_aware_async,
+    hooks::{use_cache_aware_async, use_layout_ctx},
     i18n::*,
     model::{
         BetterDirection, Bound, ColourZonesConfig, DailyScoreConfig, PracticeDataType, Value,
@@ -42,6 +37,7 @@ const ZONE_COLOURS: [ZoneColour; 4] = [
 
 #[function_component(EditYatraPractice)]
 pub fn edit_yatra_practice(props: &Props) -> Html {
+    let layout = use_layout_ctx();
     let nav = use_navigator().unwrap();
     let practice = use_state(YatraPractice::default);
     let color_zones_hidden = use_bool_toggle(true);
@@ -84,7 +80,15 @@ pub fn edit_yatra_practice(props: &Props) -> Html {
 
     {
         let current_practice = current_practice.clone();
+        let layout = layout.clone();
+        let yatra_id = props.yatra_id.to_string();
         use_mount(move || {
+            layout.set_app_service_layout(
+                false,
+                Some(tr!(practice)),
+                Some(AppRoute::YatraAdminSettings { id: yatra_id }),
+                vec![],
+            );
             current_practice.run();
         });
     }
@@ -256,116 +260,109 @@ pub fn edit_yatra_practice(props: &Props) -> Html {
 
     html! {
         <form {onsubmit}>
-            <BlankPage
-                left_button={HeaderButtonProps::back_to(AppRoute::YatraAdminSettings { id: props.yatra_id.to_string() })}
-                loading={update_practice.loading}
-                header_label={tr!(practice)}
-            >
-                <ListErrors error={current_practice.error.clone()} />
-                <ListErrors error={update_practice.error.clone()} />
-                <div class={BODY_DIV_CSS}>
-                    <div class="relative">
-                        <input
-                            id="practice"
-                            type="text"
-                            placeholder="Practice"
-                            class={INPUT_CSS}
-                            value={practice.practice.clone()}
-                            oninput={practice_oninput}
-                            required=true
-                        />
-                        <label for="practice" class={INPUT_LABEL_CSS}>
-                            <i class="icon-doc" />
-                            { format!(" {}", tr!(name)) }
-                        </label>
-                    </div>
-                    <div class="relative">
-                        <input
-                            id="data_type"
-                            type="text"
-                            placeholder="Practice"
-                            class={INPUT_CSS}
-                            value={practice.data_type.to_localised_string()}
-                            disabled=true
-                        />
-                        <label for="data_type" class={INPUT_LABEL_CSS}>
-                            <i class="icon-doc" />
-                            { format!(" {}: ", tr!(data_type)) }
-                        </label>
-                    </div>
-                    if !*color_zones_hidden {
-                        <SummaryDetails label={tr!(colour_zones_title)}>
-                            <div class="relative">
-                                <div class="pt-2">
-                                    <p class="text-xs text-zinc-500 dark:text-zinc-200">
-                                        { tr!(colour_zones_description) }
-                                    </p>
-                                </div>
+            <div class={BODY_DIV_CSS}>
+                <div class="relative">
+                    <input
+                        id="practice"
+                        type="text"
+                        placeholder="Practice"
+                        class={INPUT_CSS}
+                        value={practice.practice.clone()}
+                        oninput={practice_oninput}
+                        required=true
+                    />
+                    <label for="practice" class={INPUT_LABEL_CSS}>
+                        <i class="icon-doc" />
+                        { format!(" {}", tr!(name)) }
+                    </label>
+                </div>
+                <div class="relative">
+                    <input
+                        id="data_type"
+                        type="text"
+                        placeholder="Practice"
+                        class={INPUT_CSS}
+                        value={practice.data_type.to_localised_string()}
+                        disabled=true
+                    />
+                    <label for="data_type" class={INPUT_LABEL_CSS}>
+                        <i class="icon-doc" />
+                        { format!(" {}: ", tr!(data_type)) }
+                    </label>
+                </div>
+                if !*color_zones_hidden {
+                    <SummaryDetails label={tr!(colour_zones_title)}>
+                        <div class="relative">
+                            <div class="pt-2">
+                                <p class="text-xs text-zinc-500 dark:text-zinc-200">
+                                    { tr!(colour_zones_description) }
+                                </p>
                             </div>
-                            <div class={BODY_DIV_CSS}>
-                                <div class="relative">
-                                    <select
-                                        id="num_zones"
-                                        onchange={num_zones_onchange}
-                                        class={tw_merge!(
-                                            "appearance-none",
-                                            INPUT_CSS,
-                                            "text-center [text-align-last:center] has-value")}
+                        </div>
+                        <div class={BODY_DIV_CSS}>
+                            <div class="relative">
+                                <select
+                                    id="num_zones"
+                                    onchange={num_zones_onchange}
+                                    class={tw_merge!(
+                                        "appearance-none",
+                                        INPUT_CSS,
+                                        "text-center [text-align-last:center] has-value")}
+                                >
+                                    <option
+                                        class="text-black"
+                                        selected={num_zones_selected(0)}
+                                        value="0"
                                     >
-                                        <option
-                                            class="text-black"
-                                            selected={num_zones_selected(0)}
-                                            value="0"
-                                        >
-                                            { tr!(colour_zones_disabled) }
-                                        </option>
-                                        <option
-                                            class="text-black"
-                                            selected={num_zones_selected(2)}
-                                            value="3"
-                                        >
-                                            { tr!(colour_zones_3_zones) }
-                                        </option>
-                                        <option
-                                            class="text-black"
-                                            selected={num_zones_selected(1)}
-                                            value="2"
-                                        >
-                                            { tr!(colour_zones_2_zones) }
-                                        </option>
-                                    </select>
-                                    <label for="num_zones" class={INPUT_SELECT_LABEL_CSS}>
-                                        <i class="icon-rounds" />
-                                        { format!(" {}", tr!(colour_zones_number_of_zones)) }
-                                    </label>
-                                </div>
-                                <div class="relative">
-                                    <select
-                                        id="better_direction"
-                                        disabled={!*color_zones_enabled}
-                                        onchange={better_when_onchange}
-                                        class={tw_merge!(
-                                            "appearance-none text-center [text-align-last:center] has-value",
-                                            INPUT_CSS)}
+                                        { tr!(colour_zones_disabled) }
+                                    </option>
+                                    <option
+                                        class="text-black"
+                                        selected={num_zones_selected(2)}
+                                        value="3"
                                     >
-                                        { for [BetterDirection::Higher, BetterDirection::Lower].iter().map(|d|
-                                        html! {
-                                            <option
-                                                class={"text-black"}
-                                                selected={colour_zones_config.better_direction == *d}
-                                                value={d.to_string()}
-                                            >
-                                                {d.to_localised_string()}
-                                            </option>
-                                        }
-                                    ) }
-                                    </select>
-                                    <label for="better_direction" class={INPUT_SELECT_LABEL_CSS}>
-                                        <i class="icon-rounds" />
-                                        { format!(" {}", tr!(colour_zones_better_when)) }
-                                    </label>
-                                </div>
-                                { for colour_zones_config.bounds.iter().map(|bound|
+                                        { tr!(colour_zones_3_zones) }
+                                    </option>
+                                    <option
+                                        class="text-black"
+                                        selected={num_zones_selected(1)}
+                                        value="2"
+                                    >
+                                        { tr!(colour_zones_2_zones) }
+                                    </option>
+                                </select>
+                                <label for="num_zones" class={INPUT_SELECT_LABEL_CSS}>
+                                    <i class="icon-rounds" />
+                                    { format!(" {}", tr!(colour_zones_number_of_zones)) }
+                                </label>
+                            </div>
+                            <div class="relative">
+                                <select
+                                    id="better_direction"
+                                    disabled={!*color_zones_enabled}
+                                    onchange={better_when_onchange}
+                                    class={tw_merge!(
+                                        "appearance-none text-center [text-align-last:center] has-value",
+                                        INPUT_CSS)}
+                                >
+                                    { for [BetterDirection::Higher, BetterDirection::Lower].iter().map(|d|
+                                    html! {
+                                        <option
+                                            class={"text-black"}
+                                            selected={colour_zones_config.better_direction == *d}
+                                            value={d.to_string()}
+                                        >
+                                            {d.to_localised_string()}
+                                        </option>
+                                    }
+                                ) }
+                                </select>
+                                <label for="better_direction" class={INPUT_SELECT_LABEL_CSS}>
+                                    <i class="icon-rounds" />
+                                    { format!(" {}", tr!(colour_zones_better_when)) }
+                                </label>
+                            </div>
+                            { for colour_zones_config.bounds.iter().map(|bound|
                                 match practice.data_type {
                                     PracticeDataType::Int => html! {
                                         <div class="relative">
@@ -484,16 +481,16 @@ pub fn edit_yatra_practice(props: &Props) -> Html {
                                     _ => unreachable!()
                                 }
                             ) }
-                                <div class="relative">
-                                    <select
-                                        id="no_value_colour"
-                                        disabled={!*color_zones_enabled}
-                                        onchange={no_value_onchange}
-                                        class={tw_merge!(
-                                            "appearance-none text-center [text-align-last:center] has-value",
-                                            INPUT_CSS)}
-                                    >
-                                        { for ZONE_COLOURS.iter().map(|zc| html!{
+                            <div class="relative">
+                                <select
+                                    id="no_value_colour"
+                                    disabled={!*color_zones_enabled}
+                                    onchange={no_value_onchange}
+                                    class={tw_merge!(
+                                        "appearance-none text-center [text-align-last:center] has-value",
+                                        INPUT_CSS)}
+                                >
+                                    { for ZONE_COLOURS.iter().map(|zc| html!{
                                         <option
                                             class="text-black"
                                             selected={ colour_zones_config.no_value_colour == *zc }
@@ -502,46 +499,45 @@ pub fn edit_yatra_practice(props: &Props) -> Html {
                                             { zc.to_localised_string() }
                                         </option>
                                     }) }
-                                    </select>
-                                    <label for="no_value_colour" class={INPUT_SELECT_LABEL_CSS}>
-                                        <i class="icon-rounds" />
-                                        { format!(" {}", tr!(colour_zones_no_value_colour)) }
-                                    </label>
-                                </div>
-                                if colour_zones_config.bounds.iter().any(|b| b.to.is_some()) {
-                                    <div class="relative">
-                                        <label class="absolute left-2 -top-7 transition-all">
-                                            <i class="icon-eye" />
-                                            { format!(" {}", tr!(colour_zones_preview)) }
-                                        </label>
-                                        <Grid
-                                            color_coding={preview_heatmap_conf}
-                                            data={vec![preview_values(&colour_zones_config.bounds)
-                                                .into_iter()
-                                                .map(Some)
-                                                .collect::<Vec<_>>()]}
-                                            first_column_highlighted=false
-                                        />
-                                        <p class="text-xs text-zinc-500 dark:text-zinc-200">
-                                            { tr!(colour_zones_preview_description) }
-                                        </p>
-                                    </div>
-                                }
+                                </select>
+                                <label for="no_value_colour" class={INPUT_SELECT_LABEL_CSS}>
+                                    <i class="icon-rounds" />
+                                    { format!(" {}", tr!(colour_zones_no_value_colour)) }
+                                </label>
                             </div>
-                        </SummaryDetails>
-                        <DailyScoreConf
-                            config={(*daily_score_config).clone()}
-                            data_type={practice.data_type}
-                            on_change={daily_score_onchange}
-                        />
-                    }
-                    <div
-                        class="relative"
-                    >
-                        <button type="submit" class={SUBMIT_BTN_CSS}>{ tr!(save) }</button>
-                    </div>
+                            if colour_zones_config.bounds.iter().any(|b| b.to.is_some()) {
+                                <div class="relative">
+                                    <label class="absolute left-2 -top-7 transition-all">
+                                        <i class="icon-eye" />
+                                        { format!(" {}", tr!(colour_zones_preview)) }
+                                    </label>
+                                    <Grid
+                                        color_coding={preview_heatmap_conf}
+                                        data={vec![preview_values(&colour_zones_config.bounds)
+                                            .into_iter()
+                                            .map(Some)
+                                            .collect::<Vec<_>>()]}
+                                        first_column_highlighted=false
+                                    />
+                                    <p class="text-xs text-zinc-500 dark:text-zinc-200">
+                                        { tr!(colour_zones_preview_description) }
+                                    </p>
+                                </div>
+                            }
+                        </div>
+                    </SummaryDetails>
+                    <DailyScoreConf
+                        config={(*daily_score_config).clone()}
+                        data_type={practice.data_type}
+                        on_change={daily_score_onchange}
+                    />
+                }
+                <div
+                    class="relative"
+                >
+                    <button type="submit" class={SUBMIT_BTN_CSS}>{ tr!(save) }</button>
                 </div>
-            </BlankPage>
+            </div>
         </form>
     }
 }

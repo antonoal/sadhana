@@ -11,27 +11,25 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{FileList, HtmlInputElement};
 use yew::prelude::*;
 use yew_hooks::{
-    UseAsyncHandle, UseListHandle, use_async, use_bool_toggle, use_effect_update_with_deps,
-    use_list, use_mount,
+    UseAsyncHandle, UseListHandle, use_bool_toggle, use_effect_update_with_deps, use_list,
+    use_mount,
 };
-use yew_router::prelude::use_navigator;
+use yew_router::prelude::{Link, use_navigator};
 
 use crate::{
-    components::{
-        DATE_FORMAT,
-        blank_page::{BlankPage, HeaderButtonProps},
-        list_errors::ListErrors,
-    },
+    components::DATE_FORMAT,
     css::*,
-    hooks::use_cache_aware_async,
+    hooks::{use_async_with_error, use_cache_aware_async, use_layout_ctx},
     i18n::*,
     model::{DiaryDay, DiaryEntry, PracticeDataType, Value},
     routes::AppRoute,
     services::{get_user_practices, save_diary_owned},
+    tr,
 };
 
 #[function_component(Import)]
 pub fn import() -> Html {
+    let layout = use_layout_ctx();
     let csv_data = use_state(|| None::<String>);
     let headers = use_list(vec![]);
     let saving = use_bool_toggle(false);
@@ -49,7 +47,7 @@ pub fn import() -> Html {
     let save: UseAsyncHandle<Vec<()>, AppError> = {
         let successes = successes.clone();
         let nav = nav.clone();
-        use_async(async move {
+        use_async_with_error(async move {
             let successes = successes.current().to_owned();
 
             log::debug!("Saving: {:?}", successes);
@@ -64,7 +62,7 @@ pub fn import() -> Html {
             .collect::<Result<Vec<_>, _>>();
 
             if let Ok(res) = res.as_ref() {
-                confirm(&Locale::current().import_success_msg(SuccessQty(&res.len().to_string())));
+                confirm(&tr!(import_success_msg, SuccessQty(&res.len().to_string())));
                 nav.push(&AppRoute::Settings);
             }
 
@@ -73,8 +71,15 @@ pub fn import() -> Html {
     };
 
     {
+        let layout = layout.clone();
         let all = all_practices.clone();
         use_mount(move || {
+            layout.set_app_service_layout(
+                false,
+                Some(tr!(import_csv)),
+                Some(AppRoute::Settings),
+                vec![],
+            );
             all.run();
         });
     }
@@ -159,10 +164,10 @@ pub fn import() -> Html {
 
         let (_, cob) = it
             .next()
-            .ok_or_else(|| anyhow!(Locale::current().import_row_parse_err()))?;
+            .ok_or_else(|| anyhow!(tr!(import_row_parse_err)))?;
 
         let cob_date = NaiveDate::parse_from_str(cob, DATE_FORMAT)
-            .with_context(|| Locale::current().import_cob_parse_err(Cob(cob)))?;
+            .with_context(|| tr!(import_cob_parse_err, Cob(cob)))?;
 
         for (h, data_type, v) in it.filter_map(|((h, data_type), v)| data_type.map(|dt| (h, dt, v)))
         {
@@ -198,7 +203,7 @@ pub fn import() -> Html {
                 for (row_num, row) in rdr.records().enumerate() {
                     let dd = row
                         .map_err(anyhow::Error::from)
-                        .with_context(|| Locale::current().import_row_parse_err())
+                        .with_context(|| tr!(import_row_parse_err))
                         .and_then(|row| to_diary_day(row, &headers));
                     if let Ok(dd) = dd {
                         successes.push(dd);
@@ -219,18 +224,6 @@ pub fn import() -> Html {
         })
     };
 
-    let add_practice = {
-        // TODO: prepopulate type as well
-        // TODO: use <Redirect> or <a> instead of nav.push
-        let nav = nav.clone();
-        Callback::from(move |e: MouseEvent| {
-            let target: HtmlInputElement = e.target_unchecked_into();
-            nav.push(&AppRoute::NewUserPracticeWithName {
-                practice: target.id(),
-            });
-        })
-    };
-
     let columns_view = {
         log::debug!(
             "Building columns list from headers: {:?}",
@@ -240,30 +233,30 @@ pub fn import() -> Html {
             <>
                 <div>
                     <h5 class="text-center mb-4 text-xl font-medium leading-tight">
-                        { Locale::current().import_discovered_columns() }
+                        { tr!(import_discovered_columns) }
                     </h5>
                     <p class="text-zinc-500 dark:text-zinc-200">
-                        { Locale::current().import_discovered_columns_memo() }
+                        { tr!(import_discovered_columns_memo) }
                     </p>
                 </div>
                 { for headers.current().iter().skip(1).filter(|(_, dt)| dt.is_some()).map(|(h, dt)| html! {
                     <div class="relative">
                         <select class={INPUT_CSS} id={(*h).to_owned() }>
-                            <option class={"text-black"} disabled=true selected={dt == &Some(PracticeDataType::Int)}>{Locale::current().integer()}</option>
-                            <option class={"text-black"} disabled=true selected={dt == &Some(PracticeDataType::Time)}>{Locale::current().time()}</option>
-                            <option class={"text-black"} disabled=true selected={dt == &Some(PracticeDataType::Bool)}>{Locale::current().boolean()}</option>
-                            <option class={"text-black"} disabled=true selected={dt == &Some(PracticeDataType::Text)}>{Locale::current().text()}</option>
-                            <option class={"text-black"} disabled=true selected={dt == &Some(PracticeDataType::Duration)}>{Locale::current().duration()}</option>
+                            <option class={"text-black"} disabled=true selected={dt == &Some(PracticeDataType::Int)}>{tr!(integer)}</option>
+                            <option class={"text-black"} disabled=true selected={dt == &Some(PracticeDataType::Time)}>{tr!(time)}</option>
+                            <option class={"text-black"} disabled=true selected={dt == &Some(PracticeDataType::Bool)}>{tr!(boolean)}</option>
+                            <option class={"text-black"} disabled=true selected={dt == &Some(PracticeDataType::Text)}>{tr!(text)}</option>
+                            <option class={"text-black"} disabled=true selected={dt == &Some(PracticeDataType::Duration)}>{tr!(duration)}</option>
                         </select>
                         <label for={(*h).to_owned()} class={INPUT_LABEL_CSS}>{h}</label>
                     </div>
                 }) }
                 <div>
                     <h5 class="text-center mb-4 text-xl font-medium leading-tight">
-                        { Locale::current().import_unmatched_columns() }
+                        { tr!(import_unmatched_columns) }
                     </h5>
                     <p class="text-zinc-500 dark:text-zinc-200">
-                        { Locale::current().import_unmatched_columns_memo() }
+                        { tr!(import_unmatched_columns_memo) }
                     </p>
                 </div>
                 <div class="space-y-0">
@@ -276,15 +269,17 @@ pub fn import() -> Html {
                                 <span>{(*h).to_owned()}</span>
                             </label>
                             <label>
-                                <i onclick={add_practice.clone()} id={(*h).to_owned()} class="icon-plus"/>
+                                <Link<AppRoute>
+                                    to={AppRoute::NewUserPracticeWithName { practice: (*h).to_owned() }}
+                                >
+                                    <i class="icon-plus" />
+                                </Link<AppRoute>>
                             </label>
                         </div>
                     }) }
                 </div>
                 <div class="relative">
-                    <button type="submit" class={SUBMIT_BTN_CSS}>
-                        { Locale::current().import_csv() }
-                    </button>
+                    <button type="submit" class={SUBMIT_BTN_CSS}>{ tr!(import_csv) }</button>
                 </div>
             </>
         }
@@ -302,13 +297,14 @@ pub fn import() -> Html {
             />
             <label for="file-upload" class={INPUT_LABEL_CSS}>
                 <i class="icon-doc" />
-                { format!(" {}: ", Locale::current().import_file_select()) }
+                { format!(" {}: ", tr!(import_file_select)) }
             </label>
         </div>
     };
 
-    let list_failures = {
-        failures
+    let list_failures =
+        {
+            failures
             .current()
             .iter()
             .map(|(line, msg)| {
@@ -318,7 +314,7 @@ pub fn import() -> Html {
                         { format!(
                             "{}{msg}",
                             if !line.is_empty() {
-                                format!("{}: ", Locale::current().import_failure_line_num_msg(LineNum(&line)))
+                                format!("{}: ", tr!(import_failure_line_num_msg, LineNum(&line)))
                             } else {
                                 Default::default()
                             }
@@ -327,37 +323,27 @@ pub fn import() -> Html {
                 }
             })
             .collect::<Html>()
-    };
+        };
 
     html! {
-        <BlankPage
-            header_label={Locale::current().import_csv()}
-            show_footer=true
-            selected_page={AppRoute::Settings}
-            loading={*saving || save.loading || all_practices.loading}
-            left_button={HeaderButtonProps::back_to(AppRoute::Settings)}
-        >
-            <ListErrors error={save.error.clone()} />
-            <form {onsubmit}>
-                <div class={BODY_DIV_CSS}>
-                    <div>
-                        <h5 class="text-center mb-4 text-xl font-medium leading-tight">
-                            { Locale::current().import_instructions_header() }
-                        </h5>
-                        { for Locale::current()
-                            .import_instructions_body()
-                            .lines()
-                            .map(|l| html! {<p class="text-zinc-500 dark:text-zinc-200">{l}</p>}) }
-                    </div>
-                    { if csv_data.is_none() {
-                        file_picker
-                    } else if !failures.current().is_empty() {
-                        list_failures
-                    } else {
-                        columns_view
-                    } }
+        <form {onsubmit}>
+            <div class={BODY_DIV_CSS}>
+                <div>
+                    <h5 class="text-center mb-4 text-xl font-medium leading-tight">
+                        { tr!(import_instructions_header) }
+                    </h5>
+                    { for tr!(import_instructions_body)
+                        .lines()
+                        .map(|l| html! {<p class="text-zinc-500 dark:text-zinc-200">{l}</p>}) }
                 </div>
-            </form>
-        </BlankPage>
+                { if csv_data.is_none() {
+                    file_picker
+                } else if !failures.current().is_empty() {
+                    list_failures
+                } else {
+                    columns_view
+                } }
+            </div>
+        </form>
     }
 }

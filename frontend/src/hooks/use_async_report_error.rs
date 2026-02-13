@@ -33,16 +33,21 @@ where
         // Loading indicator update
         let start = loading.start.clone();
         let stop = loading.stop.clone();
-        let is_loading = handle.loading;
 
-        use_effect_with(is_loading, move |loading| {
-            if *loading {
+        // When loading flips to true we call start, and when it flips to false
+        // or component unmounted, we call stop in the cleanup closure
+        use_effect_with(handle.loading, move |loading| {
+            let is_loading = *loading;
+            if is_loading {
                 start.emit(());
-            } else {
-                stop.emit(());
             }
 
-            || ()
+            let stop = stop.clone();
+            move || {
+                if is_loading {
+                    stop.emit(());
+                }
+            }
         });
     }
 

@@ -42,8 +42,8 @@ pub fn edit_user_practice(props: &Props) -> Html {
         let current_practice = current_practice.clone();
         let layout = layout.clone();
         use_mount(move || {
-            layout.set_app_service_extra_layout(
-                true,
+            layout.set_app_service_layout(
+                false,
                 Some(tr!(practice)),
                 Some(AppRoute::UserPractices),
                 vec![],
@@ -195,9 +195,7 @@ pub fn edit_user_practice(props: &Props) -> Html {
                     </div>
                 </div>
                 <div class="relative">
-                    <button type="submit" class={SUBMIT_BTN_CSS}>
-                        { tr!(save) }
-                    </button>
+                    <button type="submit" class={SUBMIT_BTN_CSS}>{ tr!(save) }</button>
                 </div>
             </div>
         </form>

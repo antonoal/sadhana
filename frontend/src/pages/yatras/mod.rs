@@ -8,7 +8,7 @@ use yew_hooks::{use_async, use_mount};
 use yew_router::prelude::*;
 
 use crate::{
-    components::{grid::*, list_errors::ListErrors, summary_details::*},
+    components::{grid::*, summary_details::*},
     context::{ButtonType, HeaderButton, Session},
     css::*,
     hooks::{use_cache_aware_async, use_layout_ctx},
@@ -111,11 +111,9 @@ pub fn yatras() -> Html {
                         .as_ref()
                         .iter()
                         .map(|y| {
-                            HeaderButton::new_redirect(
-                                tr!(settings),
+                            HeaderButton::new_icon_redirect(
                                 AppRoute::YatraSettings { id: y.id.clone() },
-                                None,
-                                ButtonType::Button,
+                                "icon-settings",
                             )
                         })
                         .collect(),
@@ -277,7 +275,6 @@ pub fn yatras() -> Html {
 
     let empty_body = html! {
         <div class={BODY_DIV_CSS}>
-            <ListErrors error={yatras.error.clone()} />
             <span>{ tr!(yatra_blank_msg) }</span>
             <div class="relative">
                 <div class={LINKS_CSS}>
@@ -291,9 +288,6 @@ pub fn yatras() -> Html {
 
     let grid_body = html! {
         <>
-            <ListErrors error={yatras.error.clone()} />
-            <ListErrors error={data.error.clone()} />
-            <ListErrors error={new_yatra.error.clone()} />
             <div class={BODY_DIV_CSS}>
                 <div class="relative pb-5">
                     <select

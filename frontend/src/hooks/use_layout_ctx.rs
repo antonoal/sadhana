@@ -30,22 +30,14 @@ impl UseLayoutContextHandle {
             .build();
         self.inner.dispatch(LayoutAction::SetLayout(state));
     }
+
     /// Layout for app routes service pages
     /// - toggles footer visibility
     /// - sets title if provided
     /// - hides calendar
     /// - shows back button
-    pub fn set_app_service_layout(&self, show_footer: bool, title: Option<String>) {
-        let state = LayoutState::builder()
-            .calendar(CalendarState::disabled())
-            .show_footer(show_footer)
-            .left_buttons(vec![HeaderButton::back()])
-            .title_opt(title)
-            .build();
-        self.inner.dispatch(LayoutAction::SetLayout(state));
-    }
-    /// Like set_app_service_layout but with customizable header buttons
-    pub fn set_app_service_extra_layout(
+    /// - sets right buttons if provided
+    pub fn set_app_service_layout(
         &self,
         show_footer: bool,
         title: Option<String>,

@@ -30,7 +30,7 @@ pub fn settings() -> Html {
         let layout = layout.clone();
         let title = user_ctx.name.clone();
         use_mount(move || {
-            layout.set_app_service_layout(true, Some(title));
+            layout.set_app_service_layout(true, Some(title), None, vec![]);
         });
     }
 

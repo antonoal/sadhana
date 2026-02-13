@@ -142,7 +142,7 @@ pub fn new_practice(props: &Props) -> Html {
     {
         let layout = layout.clone();
         use_mount(move || {
-            layout.set_app_service_extra_layout(
+            layout.set_app_service_layout(
                 true,
                 Some(tr!(add_new_practice)),
                 Some(AppRoute::UserPractices),
@@ -205,18 +205,10 @@ pub fn new_practice(props: &Props) -> Html {
                         onchange={data_type_onchange}
                         required=true
                     >
-                        <option class="text-black" value="int">
-                            { tr!(integer) }
-                        </option>
-                        <option class="text-black" value="time">
-                            { tr!(time) }
-                        </option>
-                        <option class="text-black" value="bool">
-                            { tr!(boolean) }
-                        </option>
-                        <option class="text-black" value="text">
-                            { tr!(text) }
-                        </option>
+                        <option class="text-black" value="int">{ tr!(integer) }</option>
+                        <option class="text-black" value="time">{ tr!(time) }</option>
+                        <option class="text-black" value="bool">{ tr!(boolean) }</option>
+                        <option class="text-black" value="text">{ tr!(text) }</option>
                         <option class="text-black" value="duration">
                             { tr!(duration_in_mins) }
                         </option>
@@ -281,7 +273,9 @@ pub fn new_practice(props: &Props) -> Html {
                             </label>
                         </div>
                     }
-                    <div class="relative">
+                    <div
+                        class="relative"
+                    >
                         <label class="flex justify-between whitespace-nowrap pl-2 pr-2">
                             <span>
                                 <i class="icon-tick" />
@@ -303,10 +297,10 @@ pub fn new_practice(props: &Props) -> Html {
                         </div>
                     </div>
                 }
-                <div class="relative">
-                    <button type="submit" class={SUBMIT_BTN_CSS}>
-                        { tr!(save) }
-                    </button>
+                <div
+                    class="relative"
+                >
+                    <button type="submit" class={SUBMIT_BTN_CSS}>{ tr!(save) }</button>
                 </div>
             </div>
         </form>

@@ -90,24 +90,17 @@ pub fn single_pane(props: &Props) -> Html {
                                     >
                                         { title }
                                     </h5>
-                                    // TODO: subtitle
+                                    // subtitle
                                     // { for props.header_sub_label.iter().map(|sl| {
                                     //     html!{<span class="text-sm text-zinc-300 dark:text-zinc-200">{sl}</span>}
                                     // }) }
                                 </div>
                             }
                             if *show_month_cal {
-                                <MonthCalendar
-                                    close={month_cal_toggle.clone()}
-                                    // TODO: read it from Layout inside month cal
-                                    highlight_incomplete_dates=false
-                                />
+                                <MonthCalendar close={month_cal_toggle.clone()} />
                             }
                             if layout.calendar.show {
-                                <Calendar
-                                    highlight_incomplete_dates=true
-                                    selected_date_incomplete=false
-                                />
+                                <Calendar />
                             }
                             <ErrorsBanner/>
                             { props.children.clone() }

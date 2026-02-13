@@ -1,5 +1,5 @@
 use crate::{
-    components::pwd::Pwd,
+    components::Pwd,
     css::*,
     hooks::{use_async_with_error, use_layout_ctx},
     routes::AppRoute,

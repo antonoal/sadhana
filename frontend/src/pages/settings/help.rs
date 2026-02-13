@@ -4,7 +4,7 @@ use yew_hooks::use_mount;
 use yew_router::prelude::use_navigator;
 
 use crate::{
-    components::summary_details::SummaryDetails,
+    components::SummaryDetails,
     css::*,
     hooks::{use_cache_aware_async, use_layout_ctx, use_user_ctx},
     routes::AppRoute,

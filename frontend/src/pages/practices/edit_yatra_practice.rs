@@ -8,7 +8,7 @@ use super::daily_score_conf::DailyScoreConf;
 
 use crate::{
     AppRoute,
-    components::{grid::Grid, summary_details::SummaryDetails},
+    components::{Grid, SummaryDetails},
     css::*,
     hooks::{use_cache_aware_async, use_layout_ctx},
     i18n::*,

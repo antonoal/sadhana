@@ -1,25 +1,29 @@
 use yew::prelude::*;
-use yew_hooks::use_window_size;
 use yew_router::prelude::*;
 
-use crate::pages::{
-    Charts, Confirmation, Input, SharedCharts,
-    create_report::CreateReport,
-    login::Login,
-    practices::{
-        Mode, edit_user_practice::EditUserPractice, edit_yatra_practice::EditYatraPractice,
-        new_practice::NewPractice,
+use crate::{
+    model::ConfirmationType,
+    pages::{
+        Charts, Confirmation, Input, SharedCharts,
+        create_report::CreateReport,
+        login::Login,
+        practices::{
+            Mode, edit_user_practice::EditUserPractice, edit_yatra_practice::EditYatraPractice,
+            new_practice::NewPractice,
+        },
+        pwd_reset::PwdReset,
+        register_with_id::RegisterWithId,
+        settings::{
+            Settings, edit_password::EditPassword, edit_user::EditUser, help::Help, import::Import,
+            language::Language, support_form::SupportForm,
+        },
+        user_practices::UserPractices,
+        yatras::{Yatras, admin_settings::AdminSettings, join::JoinYatra, settings::YatraSettings},
     },
-    pwd_reset::PwdReset,
-    register_with_id::RegisterWithId,
-    settings::{
-        Settings, edit_password::EditPassword, edit_user::EditUser, help::Help, import::Import,
-        language::Language, support_form::SupportForm,
-    },
-    user_practices::UserPractices,
-    yatras::{Yatras, admin_settings::AdminSettings, join::JoinYatra, settings::YatraSettings},
 };
-use crate::{layouts::*, model::ConfirmationType};
+
+mod app_layout;
+pub use app_layout::AppLayout;
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum PublicRoute {
@@ -63,7 +67,6 @@ pub enum AppRoute {
     #[at("/settings/help")]
     Help,
     #[at("/user/practices")]
-    // TODO: move under /settings so that the icon in footer is correctly highlighted
     UserPractices,
     #[at("/user/practice/new")]
     NewUserPractice,
@@ -163,23 +166,6 @@ pub fn root_switch(route: PublicRoute, single_pane: bool) -> Html {
         PublicRoute::Help => html! { <Help /> },
         PublicRoute::Default | PublicRoute::AppRoute => {
             html! { <Switch<AppRoute> render={move |r| app_switch(r, single_pane)} /> }
-        }
-    }
-}
-
-#[function_component(AppLayout)]
-pub fn app_layout() -> Html {
-    let (width, _) = use_window_size();
-
-    html! {
-        if width >= 1024.0 {
-            <TwoPane>
-                <Switch<PublicRoute> render={|route| root_switch(route, false)} />
-            </TwoPane>
-        } else {
-            <SinglePane>
-                <Switch<PublicRoute> render={|route| root_switch(route, true)} />
-            </SinglePane>
         }
     }
 }

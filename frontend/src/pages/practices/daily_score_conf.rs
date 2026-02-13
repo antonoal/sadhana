@@ -3,7 +3,7 @@ use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 use crate::{
-    components::summary_details::SummaryDetails,
+    components::SummaryDetails,
     css::*,
     model::{BetterDirection, BonusRule, DailyScoreConfig, PracticeDataType, Value},
     tr,

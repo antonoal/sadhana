@@ -19,8 +19,6 @@ use crate::{
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     pub close: Callback<MouseEvent>,
-    #[prop_or(false)]
-    pub highlight_incomplete_dates: bool,
 }
 
 const DAY_CSS: &str = "cursor-pointer text-center text-md rounded-full leading-loose transition-all ease-in-out duration-300";

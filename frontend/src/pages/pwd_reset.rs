@@ -1,5 +1,5 @@
 use crate::{
-    components::pwd::Pwd,
+    components::Pwd,
     css::*,
     hooks::use_layout_ctx,
     model,

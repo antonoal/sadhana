@@ -13,15 +13,6 @@ use crate::{
     services::{get_incomplete_days, requests::GetApiRequest},
 };
 
-// TODO: deprecated; Remove
-#[derive(Properties, Clone, PartialEq)]
-pub struct Props {
-    #[prop_or(false)]
-    pub highlight_incomplete_dates: bool,
-    #[prop_or_default]
-    pub selected_date_incomplete: Option<bool>,
-}
-
 pub const DATE_FORMAT: &str = "%Y-%m-%d";
 
 const DATE_CSS: &str =
@@ -37,7 +28,7 @@ pub const SELECTED_DATE_COLOR_CSS: &str = "border-2 border-amber-400";
 const OUT_OF_WEEK_DAY_CSS: &str = "opacity-30 scale-80 hover:opacity-70";
 
 #[function_component(Calendar)]
-pub fn calendar(props: &Props) -> Html {
+pub fn calendar() -> Html {
     let session = use_context::<Session>().expect("No session state context found");
     let touch_start = use_mut_ref(|| None::<(i32, i32)>);
     let translate_x = use_state(|| 0);

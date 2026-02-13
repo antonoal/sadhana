@@ -6,8 +6,8 @@ use std::{
 use super::{GraphReport, PracticeTrace, Report, ReportDefinition, SelectedReportId};
 use crate::{
     components::{
+        Grid,
         chart::{self, Chart},
-        grid::*,
     },
     css::*,
     i18n::Locale,

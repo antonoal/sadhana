@@ -9,11 +9,9 @@ use yew_router::prelude::*;
 
 use crate::{
     components::{
-        draggable_list::{DraggableList, Item},
-        share_link::{ShareLink, can_share, emit_signal_callback, set_signal_callback},
-        summary_details::SummaryDetails,
+        SummaryDetails, {DraggableItem, DraggableList},
+        {ShareLink, can_share, emit_signal_callback, set_signal_callback},
     },
-    context::{CalendarState, HeaderButton, LayoutAction, LayoutState},
     css::*,
     hooks::{use_cache_aware_async, use_layout_ctx},
     i18n::Index,
@@ -248,11 +246,11 @@ pub fn admin_settings(props: &Props) -> Html {
     let reorder = {
         let op = ordered_practices.clone();
         let rp = reorder_practices.clone();
-        Callback::from(move |practices: Vec<Item>| {
+        Callback::from(move |practices: Vec<DraggableItem>| {
             op.set(
                 practices
                     .iter()
-                    .map(|Item { id, name: _ }| id.to_owned())
+                    .map(|DraggableItem { id, name: _ }| id.to_owned())
                     .collect(),
             );
             rp.run();
@@ -455,7 +453,7 @@ pub fn admin_settings(props: &Props) -> Html {
                                 .as_ref()
                                 .unwrap_or(&vec![])
                                 .iter()
-                                .map(|p| Item { id: p.id.clone(), name: p.practice.clone() })
+                                .map(|p| DraggableItem { id: p.id.clone(), name: p.practice.clone() })
                                 .collect::<Vec<_>>()}
                             toggle_hidden_enabled=false
                             toggle_hidden={Callback::from(|_|{})}

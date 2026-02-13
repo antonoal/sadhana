@@ -4,7 +4,7 @@ use yew_hooks::use_mount;
 use yew_router::prelude::*;
 
 use crate::{
-    components::pwd::Pwd,
+    components::Pwd,
     css::*,
     hooks::{use_async_with_error, use_layout_ctx, use_user_ctx},
     i18n::Locale,

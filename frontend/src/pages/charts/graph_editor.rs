@@ -3,8 +3,8 @@ use std::collections::{HashMap, HashSet};
 use super::{GraphReport, PracticeTrace};
 use crate::{
     components::{
+        SummaryDetails,
         chart::{BarGraphLayout, GraphType, LineConf, LineStyle, YAxis},
-        summary_details::SummaryDetails,
     },
     css::*,
     i18n::*,

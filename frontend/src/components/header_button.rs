@@ -4,7 +4,6 @@ use yew_hooks::UseToggleHandle;
 use yew_router::hooks::use_navigator;
 
 use crate::{
-    components::blank_page::HEADER_BUTTON_CSS,
     context::{Action, CtxMenuEntry, HeaderButton as HeaderBtn},
     css::POPUP_BG_CSS,
 };
@@ -20,7 +19,7 @@ pub fn header_button(props: &Props) -> Html {
     let nav = use_navigator().unwrap();
 
     let css = tw_merge!(
-        HEADER_BUTTON_CSS,
+        "no-underline text-amber-400",
         if props.has_label {
             "text-base font-bold"
         } else {

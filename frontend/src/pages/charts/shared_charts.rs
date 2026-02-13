@@ -1,11 +1,7 @@
 use super::base::ChartsBase;
 use crate::{
-    components::{
-        blank_page::{BlankPage, CalendarProps},
-        list_errors::ListErrors,
-    },
-    context::Session,
-    hooks::use_cache_aware_async,
+    context::{CalendarState, LayoutAction, LayoutState, Session},
+    hooks::{use_cache_aware_async, use_layout_ctx},
     pages::charts::{Report, SelectedReportId},
     services::{
         get_shared_practices,
@@ -24,6 +20,7 @@ pub struct SharedChartsProps {
 
 #[function_component(SharedCharts)]
 pub fn shared_charts(props: &SharedChartsProps) -> Html {
+    let layout = use_layout_ctx();
     let session_ctx = use_context::<Session>().expect("No session state found");
     let active_report = use_state(|| None::<Report>);
     let duration = use_state(|| ReportDuration::Month);
@@ -49,11 +46,21 @@ pub fn shared_charts(props: &SharedChartsProps) -> Html {
 
     {
         // Load state on mount
+        let layout = layout.clone();
         let reports = reports.clone();
         let practices = practices.clone();
         let user_info = user_info.clone();
         let report_data = report_data.clone();
         use_mount(move || {
+            layout.dispatch(LayoutAction::SetLayout(
+                LayoutState::builder()
+                    .show_footer(false)
+                    .calendar(CalendarState {
+                        highlight_incomplete: true,
+                        ..Default::default()
+                    })
+                    .build(),
+            ));
             reports.run();
             practices.run();
             user_info.run();
@@ -65,6 +72,21 @@ pub fn shared_charts(props: &SharedChartsProps) -> Html {
         let report_data = report_data.clone();
         use_effect_with(session_ctx.clone(), move |_| {
             report_data.run();
+            || ()
+        });
+    }
+
+    {
+        let layout = layout.clone();
+        let user_info = user_info.clone();
+        use_effect_with(user_info, move |u| {
+            layout.dispatch(LayoutAction::SetLayout(
+                LayoutState::builder()
+                    .show_footer(false)
+                    .calendar(CalendarState::default())
+                    .title_opt(u.data.as_ref().map(|v| v.name.clone()))
+                    .build(),
+            ));
             || ()
         });
     }
@@ -102,30 +124,17 @@ pub fn shared_charts(props: &SharedChartsProps) -> Html {
     };
 
     html! {
-        <BlankPage
-            loading={reports.loading
-                || user_info.loading
-                || practices.loading
-                || report_data.loading}
-            calendar={CalendarProps::no_override_selected_date()}
-            header_label={user_info.data.as_ref().map(|u| u.name.to_owned()).unwrap_or_default()}
-        >
-            <ListErrors error={reports.error.clone()} />
-            <ListErrors error={practices.error.clone()} />
-            <ListErrors error={report_data.error.clone()} />
-            <ListErrors error={user_info.error.clone()} />
-            if let Some(report) = active_report.as_ref() {
-                if reports.data.is_some() {
-                    <ChartsBase
-                        reports={reports.data.clone().unwrap_or_default()}
-                        practices={practices.data.clone().unwrap_or_default()}
-                        report_data={report_data.data.clone().unwrap_or_default()}
-                        report={(*report).clone()}
-                        {report_onchange}
-                        {dates_onchange}
-                    />
-                }
+        if let Some(report) = active_report.as_ref() {
+            if reports.data.is_some() {
+                <ChartsBase
+                    reports={reports.data.clone().unwrap_or_default()}
+                    practices={practices.data.clone().unwrap_or_default()}
+                    report_data={report_data.data.clone().unwrap_or_default()}
+                    report={(*report).clone()}
+                    {report_onchange}
+                    {dates_onchange}
+                />
             }
-        </BlankPage>
+        }
     }
 }

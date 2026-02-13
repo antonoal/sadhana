@@ -6,7 +6,7 @@ use yew_hooks::{use_async, use_list, use_map, use_mount};
 use yew_router::prelude::*;
 
 use crate::{
-    components::draggable_list::{DraggableList, Item},
+    components::{DraggableItem, DraggableList},
     context::HeaderButton,
     css::*,
     hooks::{use_cache_aware_async, use_layout_ctx},
@@ -129,7 +129,7 @@ pub fn user_practices() -> Html {
     let reorder = {
         let op = ordered_practices.clone();
         let rp = reorder_practices.clone();
-        Callback::from(move |practices: Vec<Item>| {
+        Callback::from(move |practices: Vec<DraggableItem>| {
             op.set(practices.iter().map(|i| i.id.clone()).collect());
             rp.run();
         })
@@ -155,7 +155,7 @@ pub fn user_practices() -> Html {
                                 .unwrap_or(&vec![])
                                 .iter()
                                 .map(|p|
-                                    Item {
+                                    DraggableItem {
                                         id: p.id.clone(),
                                         name: display_practice(local_practices.current().get(&p.id).unwrap())
                                     }

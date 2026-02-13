@@ -6,7 +6,7 @@ use yew_hooks::use_list;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
-    pub items: Vec<Item>,
+    pub items: Vec<DraggableItem>,
     #[prop_or(true)]
     pub toggle_hidden_enabled: bool,
     pub toggle_hidden: Callback<String>,
@@ -17,11 +17,11 @@ pub struct Props {
     pub request_new_name: bool,
     pub delete: Callback<String>,
     pub delete_popup_label: AttrValue,
-    pub reorder: Callback<Vec<Item>>,
+    pub reorder: Callback<Vec<DraggableItem>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Item {
+pub struct DraggableItem {
     pub id: String,
     pub name: String,
 }

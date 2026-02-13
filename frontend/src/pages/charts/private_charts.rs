@@ -5,7 +5,7 @@ use super::{
     graph_editor::GraphEditor, grid_editor::GridEditor,
 };
 use crate::{
-    components::share_link::{ShareLink, can_share, emit_signal_callback, set_signal_callback},
+    components::{ShareLink, can_share, emit_signal_callback, set_signal_callback},
     context::{CtxMenuEntry, HeaderButton, Session},
     hooks::{use_cache_aware_async, use_layout_ctx, use_user_ctx},
     i18n::Locale,

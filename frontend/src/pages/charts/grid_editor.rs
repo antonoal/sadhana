@@ -1,7 +1,7 @@
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
-use crate::{components::summary_details::SummaryDetails, css::*, i18n::*, model::UserPractice};
+use crate::{components::SummaryDetails, css::*, i18n::*, model::UserPractice};
 
 use super::GridReport;
 

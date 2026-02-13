@@ -67,20 +67,6 @@ impl HeaderButton {
         }
     }
 
-    pub fn new_redirect<S: Into<String>>(
-        label: S,
-        route: AppRoute,
-        icon_css: Option<String>,
-        btn_type: ButtonType,
-    ) -> Self {
-        Self {
-            label: Some(label.into()),
-            icon_css,
-            action: Action::Redirect(route),
-            btn_type,
-        }
-    }
-
     pub fn new_icon_cb<S: Into<String>>(
         onclick: Callback<Event>,
         icon_css: S,
@@ -107,10 +93,6 @@ impl HeaderButton {
         Self::new_cb("", onclick, Some("icon-edit".into()), ButtonType::Button)
     }
 
-    pub fn done(redirect_to: AppRoute) -> Self {
-        Self::new_redirect(tr!(done), redirect_to, None, ButtonType::Button)
-    }
-
     pub fn submit(form_ref: NodeRef) -> Self {
         Self::new_cb(
             tr! {save},
@@ -133,17 +115,8 @@ impl HeaderButton {
                 }
             }),
             None,
-            ButtonType::Button,
+            ButtonType::Reset,
         )
-    }
-
-    pub fn blank() -> Self {
-        Self {
-            label: None,
-            action: Action::Cb(Callback::default()),
-            icon_css: None,
-            btn_type: ButtonType::Button,
-        }
     }
 
     pub fn back() -> Self {
@@ -185,18 +158,6 @@ pub struct CalendarState {
 }
 
 impl CalendarState {
-    pub fn new(
-        show: bool,
-        selected_day_incomplete: Option<bool>,
-        highlight_incomplete: bool,
-    ) -> Self {
-        Self {
-            show,
-            selected_day_incomplete,
-            highlight_incomplete,
-        }
-    }
-
     pub fn disabled() -> Self {
         Self {
             show: false,
@@ -296,13 +257,7 @@ impl Default for LayoutState {
 #[derive(Debug)]
 pub enum LayoutAction {
     SetLayout(LayoutState),
-    SetTitle(String),
-    SetShowFooter(bool),
-    SetShowCalendar(bool),
     SetSelectedDayIncomplete(bool),
-    HighlightIncomplete,
-    SetHeaderButtons(Vec<HeaderButton>, Vec<HeaderButton>),
-    Reset,
 }
 
 impl Reducible for LayoutState {
@@ -314,31 +269,12 @@ impl Reducible for LayoutState {
 
         match action {
             LayoutAction::SetLayout(l) => new = l,
-            LayoutAction::SetTitle(t) => new.title = (!t.is_empty()).then_some(t),
-            LayoutAction::SetShowCalendar(v) => {
-                new.calendar = CalendarState {
-                    show: v,
-                    ..Default::default()
-                }
-            }
             LayoutAction::SetSelectedDayIncomplete(v) => {
                 new.calendar = CalendarState {
                     selected_day_incomplete: Some(v),
                     ..self.calendar
                 }
             }
-            LayoutAction::HighlightIncomplete => {
-                new.calendar = CalendarState {
-                    highlight_incomplete: true,
-                    ..self.calendar
-                }
-            }
-            LayoutAction::SetHeaderButtons(left, right) => {
-                new.left_buttons = left;
-                new.right_buttons = right;
-            }
-            LayoutAction::SetShowFooter(v) => new.show_footer = v,
-            LayoutAction::Reset => new = Self::default(),
         }
 
         new.into()

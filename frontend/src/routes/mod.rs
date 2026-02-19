@@ -18,7 +18,12 @@ use crate::{
             language::Language, support_form::SupportForm,
         },
         user_practices::UserPractices,
-        yatras::{Yatras, admin_settings::AdminSettings, join::JoinYatra, settings::YatraSettings},
+        yatras::{
+            Yatras, admin_settings::AdminSettings, admin_settings_general::AdminSettingsGeneral,
+            admin_settings_members::AdminSettingsMembers,
+            admin_settings_practices::AdminSettingsPractices,
+            admin_settings_stats::AdminSettingsStats, join::JoinYatra, settings::YatraSettings,
+        },
     },
 };
 
@@ -86,6 +91,14 @@ pub enum AppRoute {
     YatraSettings { id: String },
     #[at("/yatra/:id/admin/settings")]
     YatraAdminSettings { id: String },
+    #[at("/yatra/:id/admin/settings/general")]
+    YatraAdminSettingsGeneral { id: String },
+    #[at("/yatra/:id/admin/settings/practices")]
+    YatraAdminSettingsPractices { id: String },
+    #[at("/yatra/:id/admin/settings/members")]
+    YatraAdminSettingsMembers { id: String },
+    #[at("/yatra/:id/admin/settings/stats")]
+    YatraAdminSettingsStats { id: String },
     #[at("/yatra/:id/practice/:practice_id/edit")]
     EditYatraPractice { id: String, practice_id: String },
     #[at("/yatra/:id/practice/new")]
@@ -141,6 +154,18 @@ fn app_switch(route: AppRoute, single_pane: bool) -> Html {
         AppRoute::JoinYatra { id } => html! { <JoinYatra yatra_id={id} /> },
         AppRoute::YatraSettings { id } => html! { <YatraSettings yatra_id={id} /> },
         AppRoute::YatraAdminSettings { id } => html! { <AdminSettings yatra_id={id} /> },
+        AppRoute::YatraAdminSettingsGeneral { id } => {
+            html! { <AdminSettingsGeneral yatra_id={id} /> }
+        }
+        AppRoute::YatraAdminSettingsPractices { id } => {
+            html! { <AdminSettingsPractices yatra_id={id} /> }
+        }
+        AppRoute::YatraAdminSettingsMembers { id } => {
+            html! { <AdminSettingsMembers yatra_id={id} /> }
+        }
+        AppRoute::YatraAdminSettingsStats { id } => {
+            html! { <AdminSettingsStats yatra_id={id} /> }
+        }
         AppRoute::EditYatraPractice { id, practice_id } => {
             html! { <EditYatraPractice yatra_id={id} {practice_id} /> }
         }

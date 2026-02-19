@@ -22,6 +22,10 @@ use crate::{
 };
 
 pub mod admin_settings;
+pub mod admin_settings_general;
+pub mod admin_settings_members;
+pub mod admin_settings_practices;
+pub mod admin_settings_stats;
 pub mod join;
 pub mod settings;
 

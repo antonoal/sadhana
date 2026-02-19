@@ -47,6 +47,12 @@ pub fn new_practice(props: &Props) -> Html {
     });
     let is_dropdown = use_bool_toggle(false);
     let nav = use_navigator().unwrap();
+    let back_route = match &props.mode {
+        Mode::UserPractice => AppRoute::UserPractices,
+        Mode::YatraPractice { yatra_id } => AppRoute::YatraAdminSettingsPractices {
+            id: yatra_id.clone(),
+        },
+    };
 
     let save = {
         let form = form_data.clone();
@@ -54,7 +60,14 @@ pub fn new_practice(props: &Props) -> Html {
         let target = props.mode.clone();
         let is_dropdown = is_dropdown.clone();
         use_async(async move {
-            (match target {
+            let route_after_save = match &target {
+                Mode::UserPractice => AppRoute::UserPractices,
+                Mode::YatraPractice { yatra_id } => AppRoute::YatraAdminSettingsPractices {
+                    id: yatra_id.clone(),
+                },
+            };
+
+            (match &target {
                 Mode::UserPractice => {
                     let variants = form.dropdown_variants.clone().filter(|_| *is_dropdown);
                     let new_practice = NewUserPractice {
@@ -70,7 +83,7 @@ pub fn new_practice(props: &Props) -> Html {
                     create_yatra_practice(
                         &yatra_id,
                         NewYatraPractice {
-                            yatra_id: yatra_id.clone(),
+                            yatra_id: yatra_id.to_owned(),
                             practice: form.practice.clone(),
                             data_type: form.data_type.as_str().try_into().unwrap(),
                         },
@@ -78,7 +91,7 @@ pub fn new_practice(props: &Props) -> Html {
                     .await
                 }
             })
-            .map(|_| nav.back())
+            .map(|_| nav.push(&route_after_save))
         })
     };
 
@@ -141,11 +154,12 @@ pub fn new_practice(props: &Props) -> Html {
 
     {
         let layout = layout.clone();
+        let back_route = back_route.clone();
         use_mount(move || {
             layout.set_app_service_layout(
                 true,
                 Some(tr!(add_new_practice)),
-                Some(AppRoute::UserPractices),
+                Some(back_route),
                 vec![],
             );
             if let Some(element) = web_sys::window()

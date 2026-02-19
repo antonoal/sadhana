@@ -8,6 +8,7 @@ use yew_hooks::{use_async, use_list, use_mount, use_set};
 use yew_router::prelude::*;
 
 use crate::{
+    context::{CtxMenuEntry, HeaderButton},
     css::*,
     hooks::{use_cache_aware_async, use_layout_ctx},
     model::{PracticeDataType, YatraUserPractice},
@@ -100,20 +101,6 @@ pub fn yatra_settings(props: &Props) -> Html {
             yatra_practices.run();
             user_practices.run();
             yatra.run();
-        });
-    }
-
-    {
-        let layout = layout.clone();
-        let yatra = yatra.clone();
-        use_effect_with(yatra, move |y| {
-            layout.set_app_service_layout(
-                false,
-                y.data.iter().map(|v| v.name.clone()).next(),
-                Some(AppRoute::Yatras),
-                vec![],
-            );
-            || ()
         });
     }
 
@@ -286,6 +273,39 @@ pub fn yatra_settings(props: &Props) -> Html {
         })
     };
 
+    {
+        let layout = layout.clone();
+        let yatra = yatra.clone();
+        let is_admin = is_admin.clone();
+        let leave_onclick = leave_onclick.clone();
+        let create_yatra_onclick = create_yatra_onclick.clone();
+        let admin_settings_onclick = admin_settings_onclick.clone();
+        use_effect_with((yatra, is_admin), move |(y, is_admin)| {
+            let mut actions = vec![
+                CtxMenuEntry::action(leave_onclick.clone(), "icon-logout", &tr!(yatra_leave)),
+                CtxMenuEntry::action(
+                    create_yatra_onclick.clone(),
+                    "icon-plus",
+                    &tr!(yatra_create),
+                ),
+            ];
+            if is_admin.data.unwrap_or(false) {
+                actions.push(CtxMenuEntry::action(
+                    admin_settings_onclick.clone(),
+                    "icon-settings",
+                    &tr!(yatra_modify_admin),
+                ));
+            }
+            layout.set_app_service_layout(
+                false,
+                y.data.iter().map(|v| v.name.clone()).next(),
+                Some(AppRoute::Yatras),
+                vec![HeaderButton::ctx_menu("icon-ellipsis-vertical", actions)],
+            );
+            || ()
+        });
+    }
+
     html! {
         <form {onsubmit}>
             <div class={BODY_DIV_NO_PADDING_CSS}>
@@ -301,26 +321,6 @@ pub fn yatra_settings(props: &Props) -> Html {
                         { format!(" {}", tr!(save)) }
                     </button>
                 </div>
-            </div>
-            <div class="mx-auto max-w-md">
-                <div class="flex space-x-3">
-                    <button class={BTN_CSS} onclick={leave_onclick}>
-                        <i class="icon-minus" />
-                        { tr!(yatra_leave) }
-                    </button>
-                    <button class={BTN_CSS} onclick={create_yatra_onclick.clone()}>
-                        <i class="icon-plus" />
-                        { tr!(yatra_create) }
-                    </button>
-                </div>
-                if is_admin.data.unwrap_or(false) {
-                    <div class="relative">
-                        <button class={BTN_CSS} onclick={admin_settings_onclick.clone()}>
-                            <i class="icon-edit" />
-                            { tr!(yatra_modify_admin) }
-                        </button>
-                    </div>
-                }
             </div>
         </form>
     }

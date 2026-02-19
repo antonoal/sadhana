@@ -74,7 +74,7 @@ pub fn input() -> Html {
         use_mount(move || {
             layout.set_app_layout(vec![HeaderButton::new_icon_redirect(
                 AppRoute::UserPractices,
-                "icon-bars",
+                "icon-settings",
             )]);
             required_practices.run();
         });

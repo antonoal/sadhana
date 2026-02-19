@@ -71,13 +71,13 @@ pub enum AppRoute {
     Language,
     #[at("/settings/help")]
     Help,
-    #[at("/user/practices")]
+    #[at("/settings/practices")]
     UserPractices,
-    #[at("/user/practice/new")]
+    #[at("/settings/practice/new")]
     NewUserPractice,
-    #[at("/user/practice/:id/edit")]
+    #[at("/settings/practice/:id/edit")]
     EditUserPractice { id: String },
-    #[at("/user/practice/new/:practice")]
+    #[at("/settings/practice/new/:practice")]
     NewUserPracticeWithName { practice: String },
     #[at("/charts")]
     Charts,
@@ -110,15 +110,7 @@ pub enum AppRoute {
 
 impl AppRoute {
     pub fn is_child_of(&self, parent: &AppRoute) -> bool {
-        matches!(
-            (parent, self),
-            (AppRoute::Settings, AppRoute::EditUser)
-                | (AppRoute::Settings, AppRoute::EditPassword)
-                | (AppRoute::Settings, AppRoute::SupportForm)
-                | (AppRoute::Settings, AppRoute::Import)
-                | (AppRoute::Settings, AppRoute::Language)
-                | (AppRoute::Settings, AppRoute::Help)
-        )
+        *parent != AppRoute::Default && self.to_path().starts_with(&parent.to_path())
     }
 }
 

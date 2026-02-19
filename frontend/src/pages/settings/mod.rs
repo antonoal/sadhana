@@ -81,6 +81,13 @@ pub fn settings() -> Html {
         })
     };
 
+    let practices_onclick = {
+        let nav = nav.clone();
+        Callback::from(move |_: MouseEvent| {
+            nav.push(&AppRoute::UserPractices);
+        })
+    };
+
     let help_onclick = {
         let nav = nav.clone();
         Callback::from(move |_: MouseEvent| {
@@ -116,6 +123,9 @@ pub fn settings() -> Html {
             </ul>
             <ul onclick={edit_password_onclick} class={UL_CSS}>
                 { menu_li("icon-edit", tr!(change_password)) }
+            </ul>
+            <ul onclick={practices_onclick} class={UL_CSS}>
+                { menu_li("icon-rounds", tr!(practices)) }
             </ul>
             <ul onclick={language_onclick} class={UL_CSS}>
                 { menu_li("icon-lang", tr!(language)) }

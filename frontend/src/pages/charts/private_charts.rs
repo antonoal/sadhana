@@ -6,7 +6,7 @@ use super::{
 };
 use crate::{
     components::{ShareLink, can_share, emit_signal_callback, set_signal_callback},
-    context::{CtxMenuEntry, HeaderButton, Session},
+    context::{CtxMenuEntry, DataRefresh, HeaderButton, Session},
     hooks::{use_cache_aware_async, use_layout_ctx, use_user_ctx},
     i18n::Locale,
     model::ReportData,
@@ -27,6 +27,7 @@ use yew_hooks::{use_async, use_bool_toggle, use_mount};
 #[function_component(Charts)]
 pub fn charts() -> Html {
     let session_ctx = use_context::<Session>().expect("No session state found");
+    let data_refresh = use_context::<DataRefresh>().expect("DataRefresh context not found");
     let layout = use_layout_ctx();
     let user_ctx = use_user_ctx();
 
@@ -213,6 +214,18 @@ pub fn charts() -> Html {
         use_effect_with(session_ctx.clone(), move |_| {
             if *initialised.borrow() {
                 log::debug!("Date has changed. Re-fetching report data.");
+                report_data.run();
+            }
+            || ()
+        });
+    }
+
+    {
+        let report_data = report_data.clone();
+        let initialised = initialised.clone();
+        use_effect_with(data_refresh.version, move |_| {
+            if *initialised.borrow() {
+                log::debug!("Input data has changed. Re-fetching report data.");
                 report_data.run();
             }
             || ()

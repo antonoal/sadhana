@@ -118,7 +118,7 @@ fn app_switch(route: AppRoute, single_pane: bool) -> Html {
     match route {
         AppRoute::Default => html! {
             if single_pane {
-                <Input />
+                <Input with_single_pane_layout=true />
             } else {
                 <Charts />
             }

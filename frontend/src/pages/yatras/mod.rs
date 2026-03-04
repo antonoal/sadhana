@@ -9,7 +9,7 @@ use yew_router::prelude::*;
 
 use crate::{
     components::{Grid, SummaryDetails},
-    context::{HeaderButton, Session},
+    context::{DataRefresh, HeaderButton, Session},
     css::*,
     hooks::{use_cache_aware_async, use_layout_ctx},
     model::{
@@ -33,6 +33,7 @@ const SELECTED_YATRA_ID_KEY: &str = "selected_yatra";
 
 #[function_component(Yatras)]
 pub fn yatras() -> Html {
+    let data_refresh = use_context::<DataRefresh>().expect("DataRefresh context not found");
     let layout = use_layout_ctx();
     let session_ctx = use_context::<Session>().expect("No session state found");
     let nav = use_navigator().unwrap();
@@ -125,6 +126,17 @@ pub fn yatras() -> Html {
                 || ()
             },
         );
+    }
+
+    {
+        let data = data.clone();
+        let selected_yatra = selected_yatra.clone();
+        use_effect_with(data_refresh.version, move |_| {
+            if selected_yatra.is_some() {
+                data.run();
+            }
+            || ()
+        });
     }
 
     let yatra_onchange = {

@@ -9,7 +9,7 @@ use yew_hooks::{use_list, use_mount};
 
 use crate::{
     components::Prompt,
-    context::{HeaderButton, Session},
+    context::{DataRefresh, HeaderButton, Session},
     css::*,
     hooks::{use_async_with_error, use_cache_aware_async, use_layout_ctx, use_visibility},
     i18n::PracticeName,
@@ -20,9 +20,16 @@ use crate::{
     utils::time_dur_input_support::*,
 };
 
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    #[prop_or(true)]
+    pub with_single_pane_layout: bool,
+}
+
 #[function_component(Input)]
-pub fn input() -> Html {
+pub fn input(props: &Props) -> Html {
     let session = use_context::<Session>().expect("No session state found");
+    let data_refresh = use_context::<DataRefresh>().expect("DataRefresh context not found");
     let visibility = use_visibility();
     let layout = use_layout_ctx();
 
@@ -46,10 +53,12 @@ pub fn input() -> Html {
     let save_diary_day_entry = {
         let session = session.clone();
         let entry = current_entry.clone();
+        let data_refresh = data_refresh.clone();
         use_async_with_error(async move {
             if let Some(e) = &*entry {
                 save_diary_entry(&session.selected_date, e).await.map(|_| {
                     entry.set(None);
+                    data_refresh.notify_saved.emit(());
                 })
             } else {
                 Ok(())
@@ -71,11 +80,14 @@ pub fn input() -> Html {
     {
         let layout = layout.clone();
         let required_practices = required_practices.clone();
+        let should_set_layout = props.with_single_pane_layout;
         use_mount(move || {
-            layout.set_app_layout(vec![HeaderButton::new_icon_redirect(
-                AppRoute::UserPractices,
-                "icon-settings",
-            )]);
+            if should_set_layout {
+                layout.set_app_layout(vec![HeaderButton::new_icon_redirect(
+                    AppRoute::UserPractices,
+                    "icon-settings",
+                )]);
+            }
             required_practices.run();
         });
     }
@@ -252,227 +264,234 @@ pub fn input() -> Html {
         })
     };
 
+    let inputs = html! {
+        <>
+            if let Some(idx) = *add_duration_prompt_idx {
+                <Prompt
+                    title={tr!(prompt_title_add_dur, PracticeName(&local_diary_entry.current()[idx].practice))}
+                    description={tr!(prompt_desc_add_dur, PracticeName(&local_diary_entry.current()[idx].practice))}
+                    onsuccess={add_duraction.clone()}
+                    oncancel={add_duration_onclick.clone()}
+                />
+            }
+            { for local_diary_entry.current().iter().enumerate().map(|(idx, DiaryEntry {practice, data_type, dropdown_variants, value})| {
+                    let wrapper_css =
+                        (value.is_none() && !diary_entry.loading && session.selected_date < session.today)
+                            .then_some(0)
+                            .and_then(|_| required_practices.data.as_ref())
+                            .filter(|req| req.contains(practice))
+                            .map(|_| {"group is-incomplete"})
+                            .unwrap_or_default();
+
+                    let to_options = |variants: &str| {
+                        let is_selected = |v| {
+                            value
+                                .as_ref()
+                                .map(|val| val.to_string() == v)
+                                .unwrap_or(false)
+                        };
+
+                        let mut found_selected = false;
+
+                        let mut opts = variants
+                        .split(',')
+                        .map(str::trim)
+                        .filter(|s| !s.is_empty())
+                        .map(|v| {
+                            let selected = is_selected(v);
+                            if !found_selected {
+                                found_selected = selected;
+                            }
+                            html! {
+                                <option class={"text-black"} {selected} value={v.to_string()}>{v}</option>
+                            }
+                        })
+                        .collect::<Vec<Html>>();
+
+                        let empty = html! {
+                            <option
+                            class={"text-black"}
+                            value=""
+                            selected={value.is_none() || !found_selected} />
+                        };
+
+                        opts.insert(0, empty);
+                        opts
+                    };
+
+                    let input_html = match data_type {
+                        PracticeDataType::Int => html! {
+                            <div class="relative" key={practice.clone()} >
+                                if let Some(variants) = dropdown_variants.as_ref() {
+                                    <select
+                                        onchange={onchange_int.clone()}
+                                        id={idx.to_string()}
+                                        class={
+                                            tw_merge!(
+                                                "appearance-none",
+                                                INPUT_CSS,
+                                                "text-center [text-align-last:center]",
+                                                if value.as_ref().is_some_and(|v| !v.to_string().is_empty()) {
+                                                    "has-value"
+                                                } else {
+                                                    ""
+                                                })
+                                        } >
+                                        {to_options(variants)}
+                                    </select>
+                                } else {
+                                    <input
+                                        onchange={onchange_int.clone()}
+                                        type="number"
+                                        inputmode="numeric"
+                                        id={idx.to_string()}
+                                        value={value.iter().find_map(|v| v.as_int().map(|i| i.to_string())).unwrap_or_default()}
+                                        min="0"
+                                        max="174"
+                                        placeholder={idx.to_string()}
+                                        autocomplete="off"
+                                        class={tw_merge!(INPUT_CSS, "text-center")}
+                                        />
+                                }
+                                <label
+                                    for={idx.to_string()}
+                                    class={if dropdown_variants.is_some() {INPUT_SELECT_LABEL_CSS} else {INPUT_LABEL_CSS}}
+                                >
+                                    <i class="icon-rounds"/>
+                                    {format!(" {practice}: ")}
+                                </label>
+                            </div>
+                            },
+                        PracticeDataType::Bool => html! {
+                            <div class="relative" key={ practice.clone() } >
+                                <label class="flex justify-between whitespace-nowrap pl-2 pr-2">
+                                    <span class=""><i class="icon-tick"></i>{ format!(" {practice}: ") }</span>
+                                    <div class="flex">
+                                        <input
+                                            type="checkbox"
+                                            class={CHECKBOX_INPUT_CSS}
+                                            onclick={checkbox_onclick.clone()}
+                                            id={idx.to_string()}
+                                            checked={value.iter().find_map(|v| v.as_bool()).unwrap_or(false)}
+                                            />
+                                    </div>
+                                </label>
+                            </div>
+                            },
+                        PracticeDataType::Duration => html! {
+                            <div class="relative" key={ practice.clone() } >
+                                <input
+                                    autocomplete="off"
+                                    id={idx.to_string()}
+                                    type="text"
+                                    inputmode="numeric"
+                                    onblur={onblur_time_dur(false)}
+                                    oninput={oninput_duration(backspace_key_pressed.clone())}
+                                    onkeydown={onkeydown_time_dur.clone()}
+                                    value={value.iter().find_map(|v| v.as_duration_str()).unwrap_or_default()}
+                                    class={tw_merge!(INPUT_CSS, "text-center")}
+                                    placeholder={idx.to_string()}
+                                    />
+                                if value.is_some() {
+                                    <div
+                                        id={idx.to_string()}
+                                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 cursor-pointer"
+                                        onclick={add_duration_onclick.clone()}
+                                        >
+                                        <i id={idx.to_string()} class="icon-plus"  />
+                                    </div>
+                                }
+                                <label for={idx.to_string()} class={INPUT_LABEL_CSS}>
+                                    <i class="icon-timer"/>
+                                    {format!(" {practice}: ")}
+                                </label>
+                            </div>
+                            },
+                        PracticeDataType::Time => html! {
+                            <div class="relative" key={practice.clone()} >
+                                <input
+                                    autocomplete="off"
+                                    id={idx.to_string()}
+                                    type="text"
+                                    inputmode="numeric"
+                                    onblur={onblur_time_dur(true)}
+                                    onfocus={
+                                        Callback::from(move |e: FocusEvent| {
+                                            let mut input: HtmlInputElement = e.target_unchecked_into();
+                                            format_time(&mut input, false);
+                                        })
+                                    }
+                                    oninput={
+                                        let back = backspace_key_pressed.clone();
+                                        Callback::from(move |e: InputEvent| {
+                                            let mut input: HtmlInputElement = e.target_unchecked_into();
+                                            format_time(&mut input, *back.borrow());
+                                        })
+                                    }
+                                    onkeydown={onkeydown_time_dur.clone()}
+                                    value={ value.iter().find_map(|v| v.as_time_str()).unwrap_or_default() }
+                                    class={tw_merge!(INPUT_CSS, "text-center")}
+                                    placeholder={idx.to_string()}
+                                    />
+                                <label for={idx.to_string()} class={INPUT_LABEL_CSS}>
+                                    <i class="icon-clock"/>
+                                    {format!(" {practice}: ")}
+                                </label>
+                            </div>
+                            },
+                        PracticeDataType::Text => html! {
+                            <div class="relative" key={practice.clone()} >
+                                if let Some(variants) = dropdown_variants.as_ref() {
+                                    <select
+                                        onchange={onchange_int.clone()}
+                                        id={idx.to_string()}
+                                        class={
+                                            tw_merge!(
+                                                "appearance-none",
+                                                INPUT_CSS,
+                                                if value.as_ref().is_some_and(|v| !v.to_string().is_empty()) {
+                                                    "has-value"
+                                                } else {
+                                                    ""
+                                                })
+                                        } >
+                                        {to_options(variants)}
+                                    </select>
+                                } else {
+                                    <textarea
+                                        id={idx.to_string()}
+                                        class={TEXTAREA_CSS}
+                                        maxlength="1024"
+                                        rows="4"
+                                        placeholder={idx.to_string()}
+                                        onchange={onchange_int.clone()}
+                                        value={value.iter().find_map(|v| v.as_text()).unwrap_or_default()}
+                                        />
+                                }
+                                <label
+                                    for={idx.to_string()}
+                                    class={if dropdown_variants.is_some() {INPUT_SELECT_LABEL_CSS} else {INPUT_LABEL_CSS}}>
+                                    <i class="icon-doc"></i>
+                                    {format!(" {practice}: ")}
+                                </label>
+                            </div>
+                        }
+                    };
+
+                    html! {
+                        <div class={wrapper_css}>{input_html}</div>
+                    }
+                }) }
+        </>
+    };
+
     html! {
         <div class={BODY_DIV_SPACE_10_CSS}>
-            <div class={TWO_COLS_CSS}>
-                if let Some(idx) = *add_duration_prompt_idx {
-                    <Prompt
-                        title={tr!(prompt_title_add_dur, PracticeName(&local_diary_entry.current()[idx].practice))}
-                        description={tr!(prompt_desc_add_dur, PracticeName(&local_diary_entry.current()[idx].practice))}
-                        onsuccess={add_duraction.clone()}
-                        oncancel={add_duration_onclick.clone()}
-                    />
-                }
-                { for local_diary_entry.current().iter().enumerate().map(|(idx, DiaryEntry {practice, data_type, dropdown_variants, value})| {
-                        let wrapper_css =
-                            (value.is_none() && !diary_entry.loading && session.selected_date < session.today)
-                                .then_some(0)
-                                .and_then(|_| required_practices.data.as_ref())
-                                .filter(|req| req.contains(practice))
-                                .map(|_| {"group is-incomplete"})
-                                .unwrap_or_default();
-
-                        let to_options = |variants: &str| {
-                            let is_selected = |v| {
-                                value
-                                    .as_ref()
-                                    .map(|val| val.to_string() == v)
-                                    .unwrap_or(false)
-                            };
-
-                            let mut found_selected = false;
-
-                            let mut opts = variants
-                            .split(',')
-                            .map(str::trim)
-                            .filter(|s| !s.is_empty())
-                            .map(|v| {
-                                let selected = is_selected(v);
-                                if !found_selected {
-                                    found_selected = selected;
-                                }
-                                html! {
-                                    <option class={"text-black"} {selected} value={v.to_string()}>{v}</option>
-                                }
-                            })
-                            .collect::<Vec<Html>>();
-
-                            let empty = html! {
-                                <option
-                                class={"text-black"}
-                                value=""
-                                selected={value.is_none() || !found_selected} />
-                            };
-
-                            opts.insert(0, empty);
-                            opts
-                        };
-
-                        let input_html = match data_type {
-                            PracticeDataType::Int => html! {
-                                <div class="relative" key={practice.clone()} >
-                                    if let Some(variants) = dropdown_variants.as_ref() {
-                                        <select
-                                            onchange={onchange_int.clone()}
-                                            id={idx.to_string()}
-                                            class={
-                                                tw_merge!(
-                                                    "appearance-none",
-                                                    INPUT_CSS,
-                                                    "text-center [text-align-last:center]",
-                                                    if value.as_ref().is_some_and(|v| !v.to_string().is_empty()) {
-                                                        "has-value"
-                                                    } else {
-                                                        ""
-                                                    })
-                                            } >
-                                            {to_options(variants)}
-                                        </select>
-                                    } else {
-                                        <input
-                                            onchange={onchange_int.clone()}
-                                            type="number"
-                                            inputmode="numeric"
-                                            id={idx.to_string()}
-                                            value={value.iter().find_map(|v| v.as_int().map(|i| i.to_string())).unwrap_or_default()}
-                                            min="0"
-                                            max="174"
-                                            placeholder={idx.to_string()}
-                                            autocomplete="off"
-                                            class={tw_merge!(INPUT_CSS, "text-center")}
-                                            />
-                                    }
-                                    <label
-                                        for={idx.to_string()}
-                                        class={if dropdown_variants.is_some() {INPUT_SELECT_LABEL_CSS} else {INPUT_LABEL_CSS}}
-                                    >
-                                        <i class="icon-rounds"/>
-                                        {format!(" {practice}: ")}
-                                    </label>
-                                </div>
-                                },
-                            PracticeDataType::Bool => html! {
-                                <div class="relative" key={ practice.clone() } >
-                                    <label class="flex justify-between whitespace-nowrap pl-2 pr-2">
-                                        <span class=""><i class="icon-tick"></i>{ format!(" {practice}: ") }</span>
-                                        <div class="flex">
-                                            <input
-                                                type="checkbox"
-                                                class={CHECKBOX_INPUT_CSS}
-                                                onclick={checkbox_onclick.clone()}
-                                                id={idx.to_string()}
-                                                checked={value.iter().find_map(|v| v.as_bool()).unwrap_or(false)}
-                                                />
-                                        </div>
-                                    </label>
-                                </div>
-                                },
-                            PracticeDataType::Duration => html! {
-                                <div class="relative" key={ practice.clone() } >
-                                    <input
-                                        autocomplete="off"
-                                        id={idx.to_string()}
-                                        type="text"
-                                        inputmode="numeric"
-                                        onblur={onblur_time_dur(false)}
-                                        oninput={oninput_duration(backspace_key_pressed.clone())}
-                                        onkeydown={onkeydown_time_dur.clone()}
-                                        value={value.iter().find_map(|v| v.as_duration_str()).unwrap_or_default()}
-                                        class={tw_merge!(INPUT_CSS, "text-center")}
-                                        placeholder={idx.to_string()}
-                                        />
-                                    if value.is_some() {
-                                        <div
-                                            id={idx.to_string()}
-                                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 cursor-pointer"
-                                            onclick={add_duration_onclick.clone()}
-                                            >
-                                            <i id={idx.to_string()} class="icon-plus"  />
-                                        </div>
-                                    }
-                                    <label for={idx.to_string()} class={INPUT_LABEL_CSS}>
-                                        <i class="icon-timer"/>
-                                        {format!(" {practice}: ")}
-                                    </label>
-                                </div>
-                                },
-                            PracticeDataType::Time => html! {
-                                <div class="relative" key={practice.clone()} >
-                                    <input
-                                        autocomplete="off"
-                                        id={idx.to_string()}
-                                        type="text"
-                                        inputmode="numeric"
-                                        onblur={onblur_time_dur(true)}
-                                        onfocus={
-                                            Callback::from(move |e: FocusEvent| {
-                                                let mut input: HtmlInputElement = e.target_unchecked_into();
-                                                format_time(&mut input, false);
-                                            })
-                                        }
-                                        oninput={
-                                            let back = backspace_key_pressed.clone();
-                                            Callback::from(move |e: InputEvent| {
-                                                let mut input: HtmlInputElement = e.target_unchecked_into();
-                                                format_time(&mut input, *back.borrow());
-                                            })
-                                        }
-                                        onkeydown={onkeydown_time_dur.clone()}
-                                        value={ value.iter().find_map(|v| v.as_time_str()).unwrap_or_default() }
-                                        class={tw_merge!(INPUT_CSS, "text-center")}
-                                        placeholder={idx.to_string()}
-                                        />
-                                    <label for={idx.to_string()} class={INPUT_LABEL_CSS}>
-                                        <i class="icon-clock"/>
-                                        {format!(" {practice}: ")}
-                                    </label>
-                                </div>
-                                },
-                            PracticeDataType::Text => html! {
-                                <div class="relative" key={practice.clone()} >
-                                    if let Some(variants) = dropdown_variants.as_ref() {
-                                        <select
-                                            onchange={onchange_int.clone()}
-                                            id={idx.to_string()}
-                                            class={
-                                                tw_merge!(
-                                                    "appearance-none",
-                                                    INPUT_CSS,
-                                                    if value.as_ref().is_some_and(|v| !v.to_string().is_empty()) {
-                                                        "has-value"
-                                                    } else {
-                                                        ""
-                                                    })
-                                            } >
-                                            {to_options(variants)}
-                                        </select>
-                                    } else {
-                                        <textarea
-                                            id={idx.to_string()}
-                                            class={TEXTAREA_CSS}
-                                            maxlength="1024"
-                                            rows="4"
-                                            placeholder={idx.to_string()}
-                                            onchange={onchange_int.clone()}
-                                            value={value.iter().find_map(|v| v.as_text()).unwrap_or_default()}
-                                            >
-                                        </textarea>
-                                    }
-                                    <label
-                                        for={idx.to_string()}
-                                        class={if dropdown_variants.is_some() {INPUT_SELECT_LABEL_CSS} else {INPUT_LABEL_CSS}}>
-                                        <i class="icon-doc"></i>
-                                        {format!(" {practice}: ")}
-                                    </label>
-                                </div>
-                            }
-                        };
-
-                        html! {
-                            <div class={wrapper_css}>{input_html}</div>
-                        }
-                    }) }
-            </div>
+            if props.with_single_pane_layout {
+                <div class={TWO_COLS_CSS}>{ inputs }</div>
+            } else {
+                { inputs }
+            }
         </div>
     }
 }

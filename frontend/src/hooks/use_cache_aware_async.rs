@@ -9,10 +9,10 @@ use web_sys::MessageEvent;
 use yew::prelude::*;
 use yew_hooks::UseAsyncHandle;
 
-use crate::utils::service_worker::get_service_worker;
 use crate::{
     hooks::use_async_with_error,
     services::requests::{GetApiRequest, RequestOptions},
+    utils::service_worker::get_service_worker,
 };
 #[derive(Deserialize)]
 struct ApiUpdatedMessage {

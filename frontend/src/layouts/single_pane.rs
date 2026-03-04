@@ -1,11 +1,12 @@
 use tw_merge::*;
 use yew::prelude::*;
-use yew_hooks::{UseToggleHandle, use_bool_toggle};
+use yew_hooks::use_bool_toggle;
 
 use crate::{
-    components::{Calendar, ErrorsBanner, Footer, HeaderButton, MonthCalendar},
+    components::{Calendar, ErrorsBanner, Footer, MonthCalendar},
     context::{HeaderButton as HeaderBtn, NetworkStatus},
     hooks::use_layout_ctx,
+    layouts::{pane_header_buttons, pane_offline_banner},
     tr,
 };
 
@@ -42,13 +43,7 @@ pub fn single_pane(props: &Props) -> Html {
     html! {
         <>
             if !network_status.online {
-                <div
-                    class="absolute bg-red-500 w-full h-4 top-[env(safe-area-inset-top)] z-10 overscroll-none"
-                >
-                    <p class="text-white text-center overflow-hidden text-xs">
-                        { tr!(offline_msg) }
-                    </p>
-                </div>
+                { pane_offline_banner(tr!(offline_msg)) }
             }
             <div
                 id="content"
@@ -69,19 +64,19 @@ pub fn single_pane(props: &Props) -> Html {
                                     class="relative sm:max-w-md md:max-w-md lg:max-w-lg xl:max-w-lg 2xl:max-w-lg mx-auto"
                                 >
                                     <div class="relative flex justify-between py-10">
-                                        { header_buttons(&left_buttons, show_ctx_menu.clone()) }
-                                        { header_buttons(&layout.right_buttons, show_ctx_menu.clone()) }
+                                        { pane_header_buttons(&left_buttons, show_ctx_menu.clone()) }
+                                        { pane_header_buttons(&layout.right_buttons, show_ctx_menu.clone()) }
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <img class="logo h-20 inline-block" src="/images/logo.png" />
+                        <img class="logo h-14 inline-block" src="/images/logo.png" />
                     </div>
                     <div
                         class="relative sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-7xl mx-auto"
                     >
                         <div
-                            class="relative px-4 py-4 rounded-3xl sm:px-20 md:px-20 lg:px-20 xl:px-30 2xl:px-30"
+                            class="relative px-4 pt-1 pb-4 rounded-3xl sm:px-20 md:px-20 lg:px-20 xl:px-30 2xl:px-30"
                         >
                             if let Some(title) = &layout.title {
                                 <div class="pb-5 text-center">
@@ -112,17 +107,5 @@ pub fn single_pane(props: &Props) -> Html {
                 <Footer />
             }
         </>
-    }
-}
-
-fn header_buttons(buttons: &[HeaderBtn], show_menu: UseToggleHandle<bool>) -> Html {
-    let has_label = buttons.iter().any(|b| b.label.is_some());
-
-    html! {
-        <span>
-            { for buttons.iter().map(|btn| html!{
-                <HeaderButton btn={(*btn).clone()} {has_label} show_menu={show_menu.clone()} />
-            }) }
-        </span>
     }
 }

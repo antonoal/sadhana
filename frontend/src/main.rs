@@ -33,9 +33,11 @@ fn app() -> Html {
                         <ErrorContextProvider>
                             <UserContextProvider>
                                 <SessionStateProvider>
-                                    <LayoutStateProvider>
-                                        <AppLayout />
-                                    </LayoutStateProvider>
+                                    <DataRefreshProvider>
+                                        <LayoutStateProvider>
+                                            <AppLayout />
+                                        </LayoutStateProvider>
+                                    </DataRefreshProvider>
                                 </SessionStateProvider>
                             </UserContextProvider>
                         </ErrorContextProvider>

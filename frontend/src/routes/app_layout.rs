@@ -4,13 +4,14 @@ use crate::{
     hooks::use_visibility,
     layouts::{SinglePane, TwoPane},
     services::requests,
+    utils::service_worker::get_service_worker,
 };
 use gloo::utils::window;
+use gloo_events::EventListener;
 use gloo_utils::format::JsValueSerdeExt;
 use serde::Serialize;
 use wasm_bindgen::JsValue;
 use yew::prelude::*;
-use yew_hooks::use_window_size;
 use yew_router::prelude::*;
 
 #[derive(Debug, Serialize)]
@@ -20,11 +21,43 @@ struct CheckUpdateMsg {
     token: String,
 }
 
+fn viewport_width() -> f64 {
+    window()
+        .inner_width()
+        .ok()
+        .and_then(|width| width.as_f64())
+        .unwrap_or_default()
+}
+
 #[function_component(AppLayout)]
 pub fn app_layout() -> Html {
-    let (width, _) = use_window_size();
+    let width = use_state_eq(viewport_width);
     let visibility = use_visibility();
     let session = use_context::<Session>().expect("SessionState context not found");
+
+    {
+        let width = width.clone();
+        use_effect_with((), move |_| {
+            let resize_listener = {
+                let width = width.clone();
+                EventListener::new(&window(), "resize", move |_| {
+                    width.set(viewport_width());
+                })
+            };
+
+            let orientation_listener = {
+                let width = width.clone();
+                EventListener::new(&window(), "orientationchange", move |_| {
+                    width.set(viewport_width());
+                })
+            };
+
+            || {
+                drop(resize_listener);
+                drop(orientation_listener);
+            }
+        });
+    }
 
     {
         // On wake of the app check for the app update and update today
@@ -33,14 +66,16 @@ pub fn app_layout() -> Html {
             if v.visible {
                 session.dispatch(SessionAction::UpdateToday);
                 if let Some(token) = requests::get_token() {
-                    if let Some(controller) = window().navigator().service_worker().controller() {
-                        let msg = CheckUpdateMsg {
-                            msg_type: "CHECK_UPDATE".into(),
-                            token,
-                        };
-                        let msg = JsValue::from_serde(&msg)
-                            .expect("Failed to serialize CHECK_UPDATE message");
-                        controller.post_message(&msg).ok();
+                    if let Some(sw) = get_service_worker() {
+                        if let Some(controller) = sw.controller() {
+                            let msg = CheckUpdateMsg {
+                                msg_type: "CHECK_UPDATE".into(),
+                                token,
+                            };
+                            let msg = JsValue::from_serde(&msg)
+                                .expect("Failed to serialize CHECK_UPDATE message");
+                            controller.post_message(&msg).ok();
+                        }
                     }
                 }
             }
@@ -48,7 +83,7 @@ pub fn app_layout() -> Html {
     }
 
     html! {
-        if false /*&& width >= 1024.0*/{
+        if *width >= 1024.0 {
             <TwoPane>
                 <Switch<PublicRoute> render={|route| root_switch(route, false)} />
             </TwoPane>

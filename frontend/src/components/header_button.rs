@@ -17,6 +17,9 @@ pub struct Props {
 #[function_component(HeaderButton)]
 pub fn header_button(props: &Props) -> Html {
     let nav = use_navigator().unwrap();
+    let anchor_ref = use_node_ref();
+    let menu_ref = use_node_ref();
+    let align_right = use_state(|| false);
 
     let css = tw_merge!(
         "no-underline text-amber-400",
@@ -79,8 +82,40 @@ pub fn header_button(props: &Props) -> Html {
         _ => html! {},
     };
 
+    {
+        let anchor_ref = anchor_ref.clone();
+        let menu_ref = menu_ref.clone();
+        let align_right = align_right.clone();
+        let show_menu = *props.show_menu;
+        let is_ctx_menu = matches!(&props.btn.action, Action::CtxMenu(_));
+
+        use_effect_with((show_menu, is_ctx_menu), move |(show_menu, is_ctx_menu)| {
+            if !*show_menu || !*is_ctx_menu {
+                align_right.set(false);
+            } else {
+                align_right.set(false);
+                if let (Some(anchor_el), Some(menu_el), Some(window)) = (
+                    anchor_ref.cast::<web_sys::Element>(),
+                    menu_ref.cast::<web_sys::Element>(),
+                    web_sys::window(),
+                ) {
+                    if let Ok(viewport_width) = window.inner_width() {
+                        if let Some(viewport_width) = viewport_width.as_f64() {
+                            let anchor_rect = anchor_el.get_bounding_client_rect();
+                            let menu_rect = menu_el.get_bounding_client_rect();
+                            let projected_right = anchor_rect.left() + menu_rect.width();
+                            align_right.set(projected_right > viewport_width);
+                        }
+                    }
+                }
+            }
+
+            || ()
+        });
+    }
+
     html! {
-        <>
+        <span class="relative inline-flex items-center" ref={anchor_ref}>
             <button
                 type={props.btn.btn_type.to_string()}
                 class={css.clone()}
@@ -99,11 +134,20 @@ pub fn header_button(props: &Props) -> Html {
                     Callback::from(move |_| show_menu.toggle())}
                 />
                 <ul
-                    class={tw_merge!("origin-top-right absolute right-0 w-65 text-gray-800 dark:text-white focus:outline-none z-20 mt-2 py-1", POPUP_BG_CSS)}
+                    ref={menu_ref}
+                    class={tw_merge!(
+                        "absolute top-full mt-2 w-72 text-gray-800 dark:text-white focus:outline-none z-20 py-1",
+                        if *align_right {
+                            "origin-top-right right-0"
+                        } else {
+                            "origin-top-left left-0"
+                        },
+                        POPUP_BG_CSS
+                    )}
                 >
                     { ctx_menu_items(&props.btn.action) }
                 </ul>
             }
-        </>
+        </span>
     }
 }

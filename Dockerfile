@@ -59,7 +59,7 @@ RUN cd dist && \
     find . -type f \( -name "*.wasm" -o -name "*.js" -o -name "*.css" \) -exec brotli -k -q 11 {} \;
 
 
-FROM gcr.io/distroless/cc-debian12
+FROM gcr.io/distroless/cc-debian13
 ARG GIT_SHA
 
 # Copying postgres cient libraries

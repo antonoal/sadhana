@@ -113,15 +113,44 @@
     useDark.addEventListener("change", (e) => toggleDarkMode());
 
     // register ServiceWorker
-    window.onload = () => {
-      "use strict";
+    // window.onload = () => {
+    //   "use strict";
 
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/service_worker.js", {
-          updateViaCache: 'none'
-        });
-      }
-    };
+    //   if ("serviceWorker" in navigator) {
+    //     navigator.serviceWorker.register("/service_worker.js", {
+    //       updateViaCache: 'none'
+    //     })
+    //       .then(registration => {
+    //         console.log("SW registered:", registration);
+
+    //         // Check current state
+    //         if (registration.installing) {
+    //           console.log("SW installing");
+    //           trackState(registration.installing);
+    //         } else if (registration.waiting) {
+    //           console.log("SW waiting");
+    //           trackState(registration.waiting);
+    //         } else if (registration.active) {
+    //           console.log("SW active");
+    //           trackState(registration.active);
+    //         }
+
+    //         // Listen for updates
+    //         registration.onupdatefound = () => {
+    //           console.log("SW update found!");
+    //           trackState(registration.installing);
+    //         };
+    //       })
+    //       .catch(error => console.error("SW registration failed:", error));
+    //   }
+    // };
+
+    function trackState(sw) {
+      console.log("Tracking SW state...");
+      sw.addEventListener('statechange', () => {
+        console.log("SW state changed to:", sw.state);
+      });
+    }
 
     // When things go seriously bad call app.sadhana.pro/#reset to nuke the caches
     (function () {

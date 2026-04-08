@@ -185,6 +185,12 @@ lazy_static! {
 pub fn chart(props: &Props) -> Html {
     log::debug!("Building chart for {:?}", props);
 
+    let plot = build_plot(props);
+
+    html! { <Plotly plot={plot} /> }
+}
+
+fn build_plot(props: &Props) -> Plot {
     let mut plot = Plot::new();
 
     // Display horizontally at the bottom in a middle of X axis
@@ -267,13 +273,19 @@ pub fn chart(props: &Props) -> Html {
         }
 
         let trace: Box<dyn Trace> = match type_ {
-            GraphType::Bar => Bar::new(x_values.clone(), y_values.clone())
-                .marker(Marker::new().color(COLORS[i % COLORS.len()]))
-                .name(name.to_owned().unwrap_or_default())
-                .show_legend(name.is_some())
-                .y_axis(y_axis_key_str.clone())
-                .offset_group((i + 1).to_string())
-                .opacity(0.35),
+            GraphType::Bar => {
+                let trace = Bar::new(x_values.clone(), y_values.clone())
+                    .marker(Marker::new().color(COLORS[i % COLORS.len()]))
+                    .name(name.to_owned().unwrap_or_default())
+                    .show_legend(name.is_some())
+                    .y_axis(y_axis_key_str.clone())
+                    .opacity(0.35);
+
+                match props.bar_mode {
+                    BarGraphLayout::Grouped => trace.offset_group((i + 1).to_string()),
+                    BarGraphLayout::Overlaid | BarGraphLayout::Stacked => trace,
+                }
+            }
             GraphType::Dot => Scatter::new(x_values.clone(), y_values.clone())
                 .marker(
                     Marker::new()
@@ -341,7 +353,7 @@ pub fn chart(props: &Props) -> Html {
     plot.set_layout(layout);
     plot.set_configuration(config);
 
-    html! { <Plotly plot={plot} /> }
+    plot
 }
 
 #[derive(Properties, Clone, PartialEq)]
@@ -377,7 +389,8 @@ impl Component for Plotly {
 
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
         if let Some(node) = self.node_ref.get() {
-            let props_obj = ctx.props().plot.to_js_object().into();
+            let props_obj =
+                js_sys::JSON::parse(&ctx.props().plot.to_json()).expect("plot should serialize");
             if first_render {
                 PlotlyJS::newPlot(node.into(), props_obj);
             } else {
@@ -396,5 +409,59 @@ mod PlotlyJS {
         pub(crate) fn newPlot(node: JsValue, obj: JsValue);
         pub(crate) fn react(node: JsValue, obj: JsValue);
         pub(crate) fn purge(node: JsValue);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::Value;
+
+    fn sample_bar_graph(name: &str) -> Graph {
+        Graph {
+            name: Some(name.to_string()),
+            type_: GraphType::Bar,
+            x_values: vec!["2026-04-01".to_string(), "2026-04-02".to_string()],
+            y_values: vec!["1".to_string(), "2".to_string()],
+            y_axis_type: PracticeDataType::Int,
+            y_axis: None,
+            average: None,
+        }
+    }
+
+    fn chart_json(bar_mode: BarGraphLayout) -> Value {
+        let plot = build_plot(&Props {
+            bar_mode,
+            traces: vec![sample_bar_graph("A"), sample_bar_graph("B")],
+        });
+
+        serde_json::from_str(&plot.to_json()).unwrap()
+    }
+
+    #[test]
+    fn grouped_bars_keep_offsetgroup() {
+        let chart = chart_json(BarGraphLayout::Grouped);
+
+        assert_eq!(chart["layout"]["barmode"], "group");
+        assert_eq!(chart["data"][0]["offsetgroup"], "1");
+        assert_eq!(chart["data"][1]["offsetgroup"], "2");
+    }
+
+    #[test]
+    fn overlaid_bars_do_not_set_offsetgroup() {
+        let chart = chart_json(BarGraphLayout::Overlaid);
+
+        assert_eq!(chart["layout"]["barmode"], "overlay");
+        assert!(chart["data"][0].get("offsetgroup").is_none());
+        assert!(chart["data"][1].get("offsetgroup").is_none());
+    }
+
+    #[test]
+    fn stacked_bars_do_not_set_offsetgroup() {
+        let chart = chart_json(BarGraphLayout::Stacked);
+
+        assert_eq!(chart["layout"]["barmode"], "relative");
+        assert!(chart["data"][0].get("offsetgroup").is_none());
+        assert!(chart["data"][1].get("offsetgroup").is_none());
     }
 }
